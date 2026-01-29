@@ -4,7 +4,7 @@ import type { Client } from '../types';
 import { useStore } from '../store';
 
 const ClientsPage: React.FC = () => {
-    const { clients, setClients } = useStore();
+    const { clients, addClient, updateClient, removeClient } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -24,19 +24,19 @@ const ClientsPage: React.FC = () => {
         });
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (editingClient) {
-            setClients(clients.map(c => c.id === editingClient.id ? { ...c, ...formData } as Client : c));
+            await updateClient({ ...editingClient, ...formData } as Client);
             setEditingClient(null);
         } else if (isAdding) {
-            setClients([...clients, formData as Client]);
+            await addClient(formData as Client);
             setIsAdding(false);
         }
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (confirm('¿Estás seguro de eliminar este cliente?')) {
-            setClients(clients.filter(c => c.id !== id));
+            await removeClient(id);
         }
     };
 

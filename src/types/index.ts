@@ -52,9 +52,9 @@ export interface Visit {
 export interface Planning {
     id: string;
     gira: string;
-    dia: string;
-    mes: string;
-    anio: string;
+    dia: number;
+    mes: number;
+    anio: number;
     horario: string;
     direccion: string;
     nombreMedico: string;

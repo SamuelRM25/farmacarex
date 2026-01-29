@@ -5,19 +5,34 @@ import type { Visit, Medicine, SaleItem } from '../types';
 import { exportVisitsReport } from '../utils/pdfExport';
 
 const VisitsPage: React.FC = () => {
-    const { visits, setVisits, medicines, clients } = useStore();
+    const { visits, setVisits, medicines, clients, planning } = useStore();
     const [activeVisit, setActiveVisit] = useState<Visit | null>(null);
     const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
     const [currentSaleItems, setCurrentSaleItems] = useState<SaleItem[]>([]);
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const day = today.getDate();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+
+    // Get today's planned entries
+    const todayPlans = planning.filter(p => p.dia === day && p.mes === month && p.anio === year);
+
+    // Map planned entries to actual client objects
+    const plannedClients = todayPlans.map(plan => {
+        const client = clients.find(c => `${c.nombre} ${c.apellido}` === plan.nombreMedico);
+        return client ? { ...client, plannedGira: plan.gira, plannedTime: plan.horario } : null;
+    }).filter(Boolean);
 
     const startVisit = (client: any) => {
         const newVisit: Visit = {
             id: Date.now().toString(),
             clientId: client.id,
             clientName: `${client.nombre} ${client.apellido}`,
-            fecha: new Date().toISOString().split('T')[0],
+            fecha: todayStr,
             hora: new Date().toLocaleTimeString(),
-            gira: 'General',
+            gira: client.plannedGira || 'General',
             notas: '',
             completada: false
         };
@@ -55,6 +70,8 @@ const VisitsPage: React.FC = () => {
                 total
             }
         };
+        // Use setVisits from store or add an addVisit action?
+        // Let's use setVisits for now as per current component logic
         setVisits([...visits, updatedVisit]);
         setActiveVisit(null);
         setCurrentSaleItems([]);
@@ -86,6 +103,8 @@ const VisitsPage: React.FC = () => {
                             <textarea
                                 className="w-full h-40 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="Escribe aquí los detalles de la visita..."
+                                value={activeVisit.notas}
+                                onChange={(e) => setActiveVisit({ ...activeVisit, notas: e.target.value })}
                             />
                         </div>
 
@@ -172,7 +191,11 @@ const VisitsPage: React.FC = () => {
             <div className="bg-blue-600 rounded-3xl p-8 text-white flex flex-col md:flex-row justify-between items-center gap-6">
                 <div>
                     <h3 className="text-2xl font-bold">Registro de Visitas Diario</h3>
-                    <p className="opacity-80">Selecciona un médico para comenzar el reporte de hoy.</p>
+                    <p className="opacity-80">
+                        {plannedClients.length > 0
+                            ? `Tienes ${plannedClients.length} médicos planificados para hoy.`
+                            : 'No hay visitas planificadas para hoy.'}
+                    </p>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -185,9 +208,23 @@ const VisitsPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {clients.map(client => (
+                {(plannedClients.length > 0 ? plannedClients : clients).map((client: any) => (
                     <div key={client.id} className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-blue-300 transition-all hover:shadow-lg group">
-                        <h4 className="font-bold text-slate-800 text-lg">{client.nombre} {client.apellido}</h4>
+                        <div className="flex justify-between items-start">
+                            <h4 className="font-bold text-slate-800 text-lg">{client.nombre} {client.apellido}</h4>
+                            {client.plannedTime && (
+                                <span className="bg-blue-50 text-blue-600 text-[10px] font-black px-2 py-1 rounded uppercase">
+                                    {client.plannedTime}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-slate-500">{client.especialidad}</p>
+                        <p className="text-xs text-slate-400 mt-1">{client.municipio}, {client.departamento}</p>
+                        {client.plannedGira && (
+                            <div className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                Gira: {client.plannedGira}
+                            </div>
+                        )}
                         <p className="text-sm text-slate-500">{client.especialidad}</p>
                         <p className="text-xs text-slate-400 mt-1">{client.municipio}, {client.departamento}</p>
 

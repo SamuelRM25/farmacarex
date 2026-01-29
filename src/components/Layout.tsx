@@ -17,6 +17,7 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
 import { googleSheetsService } from '../services/googleSheets';
+import { notificationService } from '../services/notifications';
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -36,7 +37,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [collapsed, setCollapsed] = useState(false);
     const [isApiReady, setIsApiReady] = useState(false);
     const location = useLocation();
-    const { currentUser, setCurrentUser, spreadsheetId, setSpreadsheetId, setIsLoading, isLoading } = useStore();
+    const { currentUser, setCurrentUser, spreadsheetId, setSpreadsheetId, setIsLoading, isLoading, syncAll, planning } = useStore();
 
     useEffect(() => {
         // Initialize Google API
@@ -50,6 +51,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         };
         init();
     }, []);
+
+    // Set up notification checker
+    useEffect(() => {
+        if (currentUser && spreadsheetId && planning.length > 0) {
+            notificationService.requestPermission();
+
+            const interval = setInterval(() => {
+                notificationService.checkUpcomingVisits(planning);
+            }, 60000); // Check every minute
+
+            return () => clearInterval(interval);
+        }
+    }, [currentUser, spreadsheetId, planning]);
+
+    // Auto-sync when API is ready and we have a spreadsheet
+    useEffect(() => {
+        if (isApiReady && spreadsheetId && currentUser) {
+            if (currentUser.token) {
+                googleSheetsService.setToken(currentUser.token);
+            }
+            syncAll();
+        }
+    }, [isApiReady, spreadsheetId, currentUser]);
 
     const handleLogin = async () => {
         if (!isApiReady) {
@@ -161,10 +185,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         {sidebarItems.find(i => i.path === location.pathname)?.label || 'FarmaCarex'}
                     </h2>
                     {spreadsheetId && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-xs font-bold uppercase tracking-tighter">Sincronizado</span>
-                        </div>
+                        <button
+                            onClick={() => syncAll()}
+                            disabled={isLoading}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${isLoading
+                                ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                : 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100'
+                                }`}
+                        >
+                            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+                            <span className="text-xs font-bold uppercase tracking-tighter">
+                                {isLoading ? 'Sincronizando...' : 'Sincronizado'}
+                            </span>
+                        </button>
                     )}
                 </header>
 

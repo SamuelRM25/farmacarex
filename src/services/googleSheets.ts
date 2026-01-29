@@ -80,22 +80,47 @@ export const googleSheetsService = {
     },
 
     /**
-     * Request Access Token
+     * Check if we have a valid token
      */
-    authenticate: async (): Promise<string> => {
+    hasToken: () => {
+        return window.gapi?.client?.getToken() !== null;
+    },
+
+    /**
+     * Set the Access Token manually (to restore session)
+     */
+    setToken: (token: string) => {
+        if (window.gapi?.client) {
+            window.gapi.client.setToken({ access_token: token });
+        }
+    },
+
+    /**
+     * Request Access Token
+     * @param options Configuration for token request (e.g., prompt: 'none' for silent re-auth)
+     */
+    authenticate: async (options: { prompt?: string } = {}): Promise<string> => {
         return new Promise((resolve, reject) => {
+            if (!tokenClient) {
+                reject(new Error('GIS not initialized'));
+                return;
+            }
+
             tokenClient.callback = async (resp: any) => {
                 if (resp.error !== undefined) {
                     reject(resp);
+                    return;
                 }
                 resolve(resp.access_token);
             };
 
-            if (window.gapi.client.getToken() === null) {
-                tokenClient.requestAccessToken({ prompt: 'consent' });
-            } else {
-                tokenClient.requestAccessToken({ prompt: '' });
-            }
+            // If no option provided, and we have no token, default to 'consent'
+            // If we have a token, or specific options provided, use them
+            const promptValue = options.prompt !== undefined
+                ? options.prompt
+                : (window.gapi.client.getToken() === null ? 'consent' : '');
+
+            tokenClient.requestAccessToken({ prompt: promptValue });
         });
     },
 
@@ -171,6 +196,38 @@ export const googleSheetsService = {
             range: range,
             valueInputOption: 'RAW',
             resource: { values },
+        });
+    },
+
+    /**
+     * Update values in a specific range
+     */
+    updateValues: async (spreadsheetId: string, range: string, values: any[][]) => {
+        return await window.gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range,
+            valueInputOption: 'RAW',
+            resource: { values },
+        });
+    },
+
+    /**
+     * Batch update multiple ranges or properties
+     */
+    batchUpdate: async (spreadsheetId: string, resource: any) => {
+        return await window.gapi.client.sheets.spreadsheets.batchUpdate({
+            spreadsheetId,
+            resource,
+        });
+    },
+
+    /**
+     * Clear a range of values
+     */
+    clearValues: async (spreadsheetId: string, range: string) => {
+        return await window.gapi.client.sheets.spreadsheets.values.clear({
+            spreadsheetId,
+            range,
         });
     }
 };
