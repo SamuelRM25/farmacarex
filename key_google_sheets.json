@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "hip-scarab-430706-p9",
+  "private_key_id": "868eda5d4050142e7a9c4cdd9b2ad1647d4a27a7",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCgJIxDNBa0u6YM\n8a46SVEfGp7zjoB7DtzBf10jOradYw64H0eBv6XlTtjDf4c/LAq9NMRaHaQ2sy/9\nesl5uZBVv3UEbvMZhYjn9QjKYQQ3xAPRkH21cwXCA9cqVDLUP45+qEzbcCmgaW7U\n1Pouq8A5xQo0LNN7a7HagrG130i8W0QokrvyR1W3b+QZ+lsifWOaP4+qhRJJ10yv\n/LbS0Gf5sbSmpuZGX9hiCuvHcnglCxMJ2DmSSKIJwEzVishsxkE8l/D+e2jpV+gV\nlJCa+4+uH5uhRSgoHLgYBHG+ficxb4X4J+ve3t/Wn5TtA7ilGwKIppVlRDvikQSt\n6rF3lh9jAgMBAAECggEAGO7idmAjcjY5GeYoWzjTttpdNHcpDSp44m44YRDLd+EB\nXKy6DxB4qCVziFSls7HhZiiosuMkkG5WTXU9mIR0ssphUgm4MxlgVxpb066b39bW\nmrKQGp0doLcaW/kfWikfFXHnWCRexslDkULWRPKcC3fgfn5wMCofVxxmxiCijCNm\nYFjhwHfULmtsWwLfj7sVUyJh3EkS4muIVaD5cPGVbHVxBJTMoaoQxv6UDurImdwU\ny9f9cSpFDWxZVFzuf6N9P+rC5zIB1LoylNhyEpa+lqmr1Q0TDr4ZUF1/2/pvSwYj\n91EOq0hsxBZtxuAL3TbjqUmde3WdUKA2jIGJxqjgaQKBgQDYC/Q4PzQ1aBNryCik\ndO/vJE1liGfjKPKI2aYHoNQbSnYDi6K7DRi8yRaFdw1EQG7AmF/La3Zw0/qSWdhO\nCt5Sa98//2cYJhhwBQtVSYm+mTg0CHvnjtMGk4TiAmPq5puZlBgBprNaWrrgIG5k\nQhr/urASb7cYhwFvfYqJKEFijwKBgQC9wf/h6IqkcpibDHNfdA60LEq8wOMoREzs\njX0z3jiWba3PT+iVEjA1CUcVWQNgQECHqtRMkf3qu/0SmmIDPtcXs0IgDMNz8bQm\neVlUmUEDnhFEDXo+iadKcLMJ2ywKut90y/jREDWOSSRLKIwg5cMH8X+v945W9bHO\n5HQ9AwCP7QKBgEV7SrbQNOU8LIrMW63QYd3iKfYOcYLQB3hVrxzi73Q7dUrcnKBV\nrPACJ/kSebTKmBPerWhJjlTpB7wLoxIuUqPlR25YoHpWviNArA1o0iD3O+kYFWk6\nOMnzpZfeNu4z7jTtOO9HAoV7ioBMTdR2oiI+kyPKw/LicGa/1E8aIDUnAoGAOY7p\n9fVacI1OGuHI8TA78Yzp0p1TifhFuQ8l5iDG22JDcXnUm7sbokrBJAmPC5gRutUn\ndl5mPdht6EGp70AVcFvwd9ZHRxkOwwjV/uJJpTZCGHlaFjQc6WiL9jZkApEyjLP+\nMjQPeqxW9PFEqAnpgbRQPekCZQA7wfzsAUGy3vUCgYBKaTS1fXkGThGU2AkbpvIO\noWE5PMjO2fLREBKqpKWmmYZJewrngaiH+qw5/67YoRn+pWMrCuxxqPdCLrV9/20j\nHQUDi5EJT5fGQ9TeFUWpipqSQznAtgRKkt62B+dAgUTBIPrYC920k2FOl8DvoeET\nRqB55avadw+FXeAdvjcWeg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "farmacarex@hip-scarab-430706-p9.iam.gserviceaccount.com",
+  "client_id": "101963011976699812111",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/farmacarex%40hip-scarab-430706-p9.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
