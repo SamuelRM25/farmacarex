@@ -34,94 +34,129 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Hero Section */}
-            <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-950 rounded-[2.5rem] p-12 text-white shadow-2xl relative overflow-hidden group">
-                <div className="relative z-10">
-                    <h1 className="text-5xl font-black mb-4 tracking-tighter italic">
-                        ¡Bienvenido a <span className="text-blue-400">FarmaCarex</span>!
-                    </h1>
-                    <p className="text-blue-200/80 text-xl max-w-xl font-medium leading-relaxed">
-                        Tu centro de control táctico para visitas médicas e inventario farmacéutico.
-                    </p>
+        <div className="space-y-8 md:space-y-12 animate-slide-up pb-10">
+            <div className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 p-1 bg-white/10">
+                <div className="absolute inset-0 bg-slate-400/5 opacity-10 mix-blend-overlay"></div>
+                <div className="relative z-10 p-8 md:p-14 md:flex items-center justify-between gap-10">
+                    <div className="flex-1">
+                        <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-none italic">
+                            ¡Bienvenido, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">FarmaCarex</span>!
+                        </h1>
+                    </div>
+                    <div className="hidden md:block w-48 h-48 bg-white/5 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 p-6 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/20 blur-[40px] rounded-full"></div>
+                        <div className="relative z-10 flex flex-col h-full justify-between">
+                            <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">Estado</span>
+                            <div className="flex flex-col">
+                                <span className="text-3xl font-black text-white">Online</span>
+                                <div className="w-8 h-1 bg-emerald-500 rounded-full mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full -mr-32 -mt-32 transition-all group-hover:bg-blue-500/20"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full -ml-32 -mb-32"></div>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/20 blur-[130px] rounded-full -mr-32 -mt-32"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full -ml-32 -mb-32"></div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { title: 'Clientes', value: clients.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { title: 'Productos', value: medicines.length, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { title: 'Visitas Hoy', value: todayPlanning.length, icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { title: 'Ventas Total', value: `Q ${totalSales.toFixed(2)}`, icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { title: 'Clientes', value: clients.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', label: 'Estratégicos' },
+                    { title: 'Productos', value: medicines.length, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', label: 'Vademécum' },
+                    { title: 'Visitas Hoy', value: todayPlanning.length, icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Planificadas' },
+                    { title: 'Ventas Total', value: `Q ${totalSales.toFixed(2)}`, icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', label: 'Día actual' },
                 ].map((stat) => (
-                    <div key={stat.title} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 group">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl`}>
-                                <stat.icon size={24} />
+                    <div key={stat.title} className="glass-card p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-xl shadow-slate-200/40 dark:shadow-none hover:shadow-2xl hover:shadow-indigo-100 dark:hover:shadow-indigo-500/10 hover:-translate-y-2 transition-all duration-300 group">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className={`${stat.bg} ${stat.color} p-4 rounded-2xl shadow-sm border ${stat.border} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+                                <stat.icon size={26} strokeWidth={2.5} />
                             </div>
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest group-hover:text-slate-400 transition-colors">En Tiempo Real</span>
+                            <div className="flex flex-col items-end">
+                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{stat.label}</span>
+                                <div className="w-8 h-0.5 bg-slate-100 mt-1 transition-all group-hover:w-12 group-hover:bg-indigo-200"></div>
+                            </div>
                         </div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">{stat.title}</p>
-                        <p className="text-3xl font-black text-slate-900 mt-1 tabular-nums tracking-tight">{stat.value}</p>
+                        <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{stat.title}</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter tabular-nums">{stat.value}</p>
                     </div>
                 ))}
             </div>
 
-            {/* End of Day Workflow */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm">
-                <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+            {/* Workflow / Activities */}
+            <div className="bg-white/40 backdrop-blur-xl rounded-[3rem] border border-white/60 shadow-2xl shadow-slate-200/30 overflow-hidden">
+                <div className="p-8 md:p-10 border-b border-slate-100/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-slate-50/20">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Cierre de Jornada</h2>
-                        <p className="text-sm text-slate-500 font-medium">Finaliza tus actividades y genera el reporte diario.</p>
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Cierre de Actividad</h2>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Sincroniza tus visitas y genera la inteligencia del día.</p>
                     </div>
-                    <div className="flex gap-4">
-                        <button
-                            onClick={handleEndDay}
-                            disabled={visits.length === 0}
-                            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg ${visits.length === 0
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                    : 'bg-slate-900 text-white hover:bg-black hover:shadow-slate-200 active:scale-95'
-                                }`}
-                        >
-                            <FileText size={18} />
-                            Finalizar Día
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleEndDay}
+                        disabled={visits.length === 0}
+                        className={`group relative overflow-hidden flex items-center gap-3 px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all shadow-2xl ${visits.length === 0
+                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+                            : 'bg-slate-900 text-white hover:bg-indigo-600 hover:shadow-indigo-200 active:scale-95'
+                            }`}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <FileText size={20} strokeWidth={3} className="relative z-10 transition-transform group-hover:rotate-12" />
+                        <span className="relative z-10">Finalizar Jornada</span>
+                    </button>
                 </div>
 
-                <div className="p-8">
+                <div className="p-8 md:p-12">
                     {visits.length > 0 ? (
-                        <div className="space-y-4">
-                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Actividades del Día</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-4">
+                                <div className="h-0.5 bg-slate-100 flex-1"></div>
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Registro Cronológico</h3>
+                                <div className="h-0.5 bg-slate-100 flex-1"></div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {visits.map((visit) => (
-                                    <div key={visit.id} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-4">
-                                        <div className="w-10 h-10 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-blue-600 shadow-sm">
-                                            <Users size={18} />
+                                    <div key={visit.id} className="group p-6 bg-white/50 dark:bg-slate-800/40 border border-slate-100 dark:border-white/5 rounded-[2rem] flex flex-col gap-4 hover:border-indigo-100 dark:hover:border-indigo-500/30 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm hover:shadow-xl hover:-translate-y-1">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl flex items-center justify-center text-indigo-600 font-bold shadow-sm transition-transform group-hover:scale-110">
+                                                {visit.clientName[0]}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-extrabold text-slate-900 dark:text-white text-base truncate tracking-tight">{visit.clientName}</p>
+                                                <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-black uppercase tracking-widest mt-0.5">{visit.hora}</p>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-slate-800 text-sm truncate">{visit.clientName}</p>
-                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter mt-0.5">{visit.hora}</p>
-                                            {visit.sale && (
-                                                <div className="mt-2 inline-flex items-center px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-black">
-                                                    VENTA: Q {visit.sale.total.toFixed(2)}
+                                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                                            {visit.sale ? (
+                                                <div className="px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm">
+                                                    Q {visit.sale.total.toFixed(2)}
+                                                </div>
+                                            ) : (
+                                                <div className="px-4 py-2 bg-slate-50 text-slate-400 rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                                                    Sin Venta
                                                 </div>
                                             )}
+                                            <div className="p-2 bg-slate-50 group-hover:bg-indigo-50 rounded-lg text-slate-300 group-hover:text-indigo-600 transition-colors">
+                                                <FileText size={14} />
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     ) : (
-                        <div className="py-20 flex flex-col items-center justify-center text-center">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-6 border-2 border-dashed border-slate-100">
-                                <RotateCcw size={32} />
+                        <div className="py-24 flex flex-col items-center justify-center text-center">
+                            <div className="relative mb-8">
+                                <div className="w-24 h-24 bg-slate-50/50 rounded-full flex items-center justify-center text-slate-200 border-2 border-dashed border-slate-200 animate-pulse">
+                                    <RotateCcw size={40} />
+                                </div>
+                                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white shadow-xl rounded-full flex items-center justify-center border border-slate-100">
+                                    <Calendar className="text-indigo-400" size={16} />
+                                </div>
                             </div>
-                            <h3 className="text-lg font-bold text-slate-400">No hay actividades registradas hoy</h3>
-                            <p className="text-sm text-slate-300 max-w-xs mt-2">Completa visitas para poder generar tu reporte diario.</p>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Esperando Actividad</h3>
+                            <p className="text-slate-400 font-medium max-w-xs mt-3 leading-relaxed">
+                                Tu jornada está lista para comenzar. Completa visitas en el módulo de <span className="text-indigo-600 font-bold">Planificación</span> para verlas aquí.
+                            </p>
                         </div>
                     )}
                 </div>

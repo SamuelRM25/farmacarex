@@ -1,3 +1,17 @@
+export interface Medicine {
+    id: string;
+    nombre: string;
+    presentacion: string;
+    precioPublico: number;
+    precioFarmacia: number;
+    bonificacion2a9: string;
+    bonificacion10Mas: string;
+    precioMedico: number;
+    ofertas: string;
+    stock: number;
+    imageUrl?: string;
+}
+
 export interface Client {
     id: string;
     colegiado: string;
@@ -7,18 +21,8 @@ export interface Client {
     direccion: string;
     municipio: string;
     departamento: string;
-}
-
-export interface Medicine {
-    id: string;
-    nombre: string;
-    precioPublico: number;
-    precioFarmacia: number;
-    bonificacion2a9: string;
-    bonificacion10Mas: string;
-    precioMedico: number;
-    ofertas: string;
-    stock: number;
+    telefono: string;
+    location?: string;
 }
 
 export interface SaleItem {

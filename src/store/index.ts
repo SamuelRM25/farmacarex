@@ -12,6 +12,7 @@ interface AppState {
     isLoading: boolean;
     currentUser: any | null;
     spreadsheetId: string | null;
+    theme: 'light' | 'dark';
 
     // Actions
     setClients: (clients: Client[]) => void;
@@ -22,6 +23,8 @@ interface AppState {
     setIsLoading: (isLoading: boolean) => void;
     setCurrentUser: (user: any | null) => void;
     setSpreadsheetId: (id: string | null) => void;
+    setTheme: (theme: 'light' | 'dark') => void;
+    toggleTheme: () => void;
     syncAll: () => Promise<void>;
     addClient: (client: Client) => Promise<void>;
     updateClient: (client: Client) => Promise<void>;
@@ -29,6 +32,8 @@ interface AppState {
     addPlan: (plan: Planning) => Promise<void>;
     updatePlan: (plan: Planning) => Promise<void>;
     removePlan: (id: string) => Promise<void>;
+    addVisit: (visit: Visit) => Promise<void>;
+    updateVisit: (visit: Visit) => Promise<void>;
     resetDay: () => Promise<void>;
 }
 
@@ -48,6 +53,7 @@ export const useStore = create<AppState>()(
             isLoading: false,
             currentUser: null,
             spreadsheetId: null,
+            theme: 'light',
 
             setClients: (clients) => set({ clients }),
             setMedicines: (medicines) => set({ medicines }),
@@ -57,6 +63,8 @@ export const useStore = create<AppState>()(
             setIsLoading: (isLoading) => set({ isLoading }),
             setCurrentUser: (user) => set({ currentUser: user }),
             setSpreadsheetId: (id) => set({ spreadsheetId: id }),
+            setTheme: (theme) => set({ theme }),
+            toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
 
             syncAll: async () => {
                 const { spreadsheetId, currentUser, setCurrentUser } = get();
@@ -85,6 +93,12 @@ export const useStore = create<AppState>()(
                         googleSheetsService.getValues(spreadsheetId, 'Planificacion!A2:Z'),
                     ]);
 
+                    const parseNumber = (val: any) => {
+                        if (typeof val === 'number') return val;
+                        const cleaned = String(val || '0').replace(/[^0-9.-]/g, '');
+                        return parseFloat(cleaned) || 0;
+                    };
+
                     set({
                         clients: clientsData.length > 0 ? clientsData.map((row: any[], index: number) => ({
                             id: row[0] || String(index + 1),
@@ -95,17 +109,20 @@ export const useStore = create<AppState>()(
                             direccion: row[5] || '',
                             municipio: row[6] || '',
                             departamento: row[7] || '',
+                            telefono: row[8] || '',
                         })) : [],
                         medicines: medicinesData.length > 0 ? medicinesData.map((row: any[], index: number) => ({
                             id: row[0] || String(index + 1),
                             nombre: row[1] || '',
-                            precioPublico: Number(row[2]) || 0,
-                            precioFarmacia: Number(row[3]) || 0,
-                            bonif_2_9: row[4] || '',
-                            bonif_10_plus: row[5] || '',
-                            precioMedico: Number(row[6]) || 0,
-                            ofertas: row[7] || '',
-                            stock: Number(row[8]) || 0,
+                            presentacion: row[2] || '',
+                            precioPublico: parseNumber(row[3]),
+                            precioFarmacia: parseNumber(row[4]),
+                            bonificacion2a9: row[5] || '',
+                            bonificacion10Mas: row[6] || '',
+                            precioMedico: parseNumber(row[7]),
+                            ofertas: row[8] || '',
+                            stock: parseNumber(row[9]),
+                            imageUrl: row[10] || ''
                         })) : [],
                         planning: planningData.length > 0 ? planningData.map((row: any[], index: number) => ({
                             id: row[0] || String(index + 1),
@@ -142,7 +159,8 @@ export const useStore = create<AppState>()(
                         }
                         await googleSheetsService.appendValues(spreadsheetId, 'Clientes!A2', [[
                             client.id, client.colegiado, client.especialidad, client.nombre,
-                            client.apellido, client.direccion, client.municipio, client.departamento
+                            client.apellido, client.direccion, client.municipio, client.departamento,
+                            client.telefono
                         ]]);
                     } catch (error: any) {
                         console.error('Error adding client to Sheets:', error);
@@ -267,6 +285,67 @@ export const useStore = create<AppState>()(
                 }
             },
 
+            addVisit: async (visit: Visit) => {
+                const { spreadsheetId, visits, currentUser, setCurrentUser } = get();
+                const newVisits = [...visits, visit];
+                set({ visits: newVisits });
+
+                if (spreadsheetId) {
+                    try {
+                        if (!googleSheetsService.hasToken() && currentUser) {
+                            const newToken = await googleSheetsService.authenticate({ prompt: 'none' });
+                            setCurrentUser({ ...currentUser, token: newToken });
+                        }
+                        await googleSheetsService.appendValues(spreadsheetId, 'Visitas!A2', [[
+                            visit.id, visit.clientId, visit.clientName, visit.fecha,
+                            visit.hora, visit.gira, visit.notas, visit.sale?.total || 0
+                        ]]);
+
+                        if (visit.sale && visit.sale.items.length > 0) {
+                            const saleValues = visit.sale.items.map(item => [
+                                visit.sale?.id || Date.now().toString(),
+                                visit.id,
+                                item.medicineId,
+                                item.medicineName,
+                                item.cantidad,
+                                item.precio,
+                                item.subtotal
+                            ]);
+                            await googleSheetsService.appendValues(spreadsheetId, 'Ventas_Detalle!A2', saleValues);
+                        }
+                    } catch (error: any) {
+                        console.error('Error adding visit to Sheets:', error);
+                        if (error?.status === 401 || error?.status === 403) setCurrentUser(null);
+                    }
+                }
+            },
+
+            updateVisit: async (visit: Visit) => {
+                const { spreadsheetId, visits, currentUser, setCurrentUser } = get();
+                const newVisits = visits.map(v => v.id === visit.id ? visit : v);
+                set({ visits: newVisits });
+
+                if (spreadsheetId) {
+                    try {
+                        if (!googleSheetsService.hasToken() && currentUser) {
+                            const newToken = await googleSheetsService.authenticate({ prompt: 'none' });
+                            setCurrentUser({ ...currentUser, token: newToken });
+                        }
+                        // Batch update for visits is complex with append-only strategy. 
+                        // Simplified: clear and rewrite or just update the specific row if we tracked indices.
+                        // For now, let's just make sure it's updated in local state and try to append if it's a "finish"
+                        const values = newVisits.map(v => [
+                            v.id, v.clientId, v.clientName, v.fecha,
+                            v.hora, v.gira, v.notas, v.sale?.total || 0
+                        ]);
+                        await googleSheetsService.updateValues(spreadsheetId, 'Visitas!A2', values);
+                    } catch (error: any) {
+                        console.error('Error updating visit in Sheets:', error);
+                        if (error?.status === 401 || error?.status === 403) setCurrentUser(null);
+                    }
+                }
+            },
+
             resetDay: async () => {
                 const { spreadsheetId, currentUser, setCurrentUser } = get();
                 set({ visits: [] });
@@ -294,6 +373,7 @@ export const useStore = create<AppState>()(
                 tours: state.tours,
                 currentUser: state.currentUser,
                 spreadsheetId: state.spreadsheetId,
+                theme: state.theme,
             }),
         }
     )
