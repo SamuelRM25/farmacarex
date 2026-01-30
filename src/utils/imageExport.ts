@@ -1,22 +1,22 @@
-import html2canvas from 'html2canvas';
+import { toJpeg } from 'html-to-image';
 
 export const exportElementAsImage = async (elementId: string, fileName: string) => {
     const element = document.getElementById(elementId);
     if (!element) return;
 
     try {
-        const canvas = await html2canvas(element, {
-            scale: 2, // Higher resolution
-            backgroundColor: null, // Allow transparent background to avoid color parsing issues if possible, or default
-            useCORS: true, // Enable CORS to avoid tainted canvas
-            logging: false,
-            ignoreElements: (node) => node.classList.contains('no-export') // Helper class to hide buttons in export
+        const dataUrl = await toJpeg(element, {
+            quality: 0.95,
+            backgroundColor: '#ffffff',
+            filter: (node) => {
+                // Skip elements with no-export class
+                return !node.classList?.contains('no-export');
+            }
         });
 
-        const image = canvas.toDataURL('image/jpeg', 0.9);
         const link = document.createElement('a');
-        link.href = image;
         link.download = `${fileName}.jpg`;
+        link.href = dataUrl;
         link.click();
     } catch (error) {
         console.error('Error exporting image:', error);
