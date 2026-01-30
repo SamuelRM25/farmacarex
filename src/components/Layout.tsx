@@ -15,7 +15,9 @@ import {
     RefreshCw,
     Map,
     Moon,
-    Sun
+    Sun,
+    Settings,
+    ChevronDown
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
@@ -40,6 +42,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [collapsed, setCollapsed] = useState(false);
     const [isApiReady, setIsApiReady] = useState(false);
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [userInfo, setUserInfo] = useState<{ name?: string, email?: string, picture?: string } | null>(null);
     const location = useLocation();
     const { currentUser, setCurrentUser, spreadsheetId, setSpreadsheetId, setIsLoading, isLoading, syncAll, planning, theme, toggleTheme } = useStore();
 
@@ -91,12 +95,27 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 setCurrentUser({ token });
                 const id = await googleSheetsService.getOrCreateSpreadsheet();
                 setSpreadsheetId(id);
+                await fetchUserInfo(token);
             }
         } catch (err: any) {
             console.error('Login failed', err);
             handleApiError(err);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchUserInfo = async (token: string) => {
+        try {
+            const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const info = await response.json();
+                setUserInfo(info);
+            }
+        } catch (error) {
+            console.error('Failed to fetch user info:', error);
         }
     };
 
@@ -111,8 +130,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
 
     const handleLogout = () => {
+        const { resetAllData } = useStore.getState();
         setCurrentUser(null);
         setSpreadsheetId(null);
+        setUserInfo(null);
+        setIsSettingsOpen(false);
+        resetAllData(); // Clear all data when logging out
     };
 
     // Responsive navigation items
@@ -169,19 +192,43 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="p-4 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
                     {currentUser ? (
                         <div className="flex flex-col gap-2">
-                            <div className={`flex items-center gap-3 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-sm ${collapsed ? 'justify-center' : ''}`}>
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 dark:shadow-none">
-                                    <User size={16} />
-                                </div>
-                                {!collapsed && <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">Perfil Conectado</span>}
-                            </div>
                             <button
-                                onClick={handleLogout}
-                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors ${collapsed ? 'justify-center' : ''}`}
+                                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all ${collapsed ? 'justify-center' : ''}`}
                             >
-                                <LogOut size={20} />
-                                {!collapsed && <span className="text-sm font-medium">Cerrar Sesión</span>}
+                                {userInfo?.picture ? (
+                                    <img src={userInfo.picture} alt="Profile" className="w-8 h-8 rounded-full border-2 border-indigo-400" />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 dark:shadow-none">
+                                        <User size={16} />
+                                    </div>
+                                )}
+                                {!collapsed && (
+                                    <div className="flex-1 text-left">
+                                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{userInfo?.name || 'Usuario'}</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{userInfo?.email || 'Conectado'}</p>
+                                    </div>
+                                )}
+                                {!collapsed && <ChevronDown size={16} className={`text-slate-400 transition-transform ${isSettingsOpen ? 'rotate-180' : ''}`} />}
                             </button>
+                            {isSettingsOpen && !collapsed && (
+                                <div className="space-y-1 animate-in slide-in-from-top-2 duration-200">
+                                    <button
+                                        onClick={() => setIsSettingsOpen(false)}
+                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors text-left"
+                                    >
+                                        <Settings size={16} />
+                                        <span className="text-sm">Configuración</span>
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
+                                    >
+                                        <LogOut size={16} />
+                                        <span className="text-sm">Cerrar Sesión</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <button
@@ -243,9 +290,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             </button>
                         )}
                         {currentUser && (
-                            <div className="md:hidden w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
-                                <User size={20} className="text-slate-400" />
-                            </div>
+                            <button
+                                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                                className="md:hidden w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden"
+                            >
+                                {userInfo?.picture ? (
+                                    <img src={userInfo.picture} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
+                                        <User size={20} className="text-white" />
+                                    </div>
+                                )}
+                            </button>
                         )}
                     </div>
                 </header>

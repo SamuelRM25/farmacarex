@@ -35,6 +35,7 @@ interface AppState {
     addVisit: (visit: Visit) => Promise<void>;
     updateVisit: (visit: Visit) => Promise<void>;
     resetDay: () => Promise<void>;
+    resetAllData: () => void;
 }
 
 export const useStore = create<AppState>()(
@@ -361,6 +362,15 @@ export const useStore = create<AppState>()(
                         if (error?.status === 401 || error?.status === 403) setCurrentUser(null);
                     }
                 }
+            },
+
+            resetAllData: () => {
+                set({
+                    clients: [],
+                    medicines: [],
+                    visits: [],
+                    planning: [],
+                });
             },
         }),
         {

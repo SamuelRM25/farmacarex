@@ -398,7 +398,7 @@ const VisitsPage: React.FC = () => {
                 )}
                 {isSaleModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-slate-900/40 dark:bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
-                        <div className="bg-white dark:bg-slate-900 rounded-t-[3rem] md:rounded-[3rem] w-full max-w-4xl shadow-2xl h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 duration-500 border border-white dark:border-white/10">
+                        <div className="bg-white dark:bg-slate-900 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 duration-500 border border-white dark:border-white/10 my-auto">
                             <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
                                 <div>
                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Catálogo Farmacéutico</h3>

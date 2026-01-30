@@ -3,51 +3,37 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, MapPin, X, 
 import { useStore } from '../store';
 import type { Planning } from '../types';
 
+const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
 const CalendarPage: React.FC = () => {
     const { planning, updatePlan, removePlan } = useStore();
     const [viewDate, setViewDate] = useState(new Date());
     const [editingPlan, setEditingPlan] = useState<Planning | null>(null);
     const [formData, setFormData] = useState<Partial<Planning>>({});
 
-    const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const getMonthDates = () => {
+        const start = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+        const end = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0);
+        const dates = [];
+        const startDay = start.getDay() || 7;
 
-    const monthStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-    const monthEnd = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0);
-    const startDay = monthStart.getDay();
-    const totalDays = monthEnd.getDate();
+        // Padding for previous month
+        for (let i = startDay - 1; i > 0; i--) {
+            const d = new Date(start);
+            d.setDate(d.getDate() - i);
+            dates.push(d);
+        }
 
-    const prevMonthEnd = new Date(viewDate.getFullYear(), viewDate.getMonth(), 0).getDate();
-    const prevMonthDays = Array.from({ length: startDay }, (_, i) => ({
-        day: prevMonthEnd - startDay + i + 1,
-        isCurrentMonth: false,
-        month: viewDate.getMonth() - 1,
-        year: viewDate.getFullYear()
-    }));
+        // Current month
+        for (let i = 1; i <= end.getDate(); i++) {
+            dates.push(new Date(viewDate.getFullYear(), viewDate.getMonth(), i));
+        }
 
-    const currentMonthDays = Array.from({ length: totalDays }, (_, i) => ({
-        day: i + 1,
-        isCurrentMonth: true,
-        month: viewDate.getMonth(),
-        year: viewDate.getFullYear()
-    }));
-
-    const nextMonthPadding = 42 - (prevMonthDays.length + currentMonthDays.length);
-    const nextMonthDays = Array.from({ length: nextMonthPadding }, (_, i) => ({
-        day: i + 1,
-        isCurrentMonth: false,
-        month: viewDate.getMonth() + 1,
-        year: viewDate.getFullYear()
-    }));
-
-    const allDays = [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
+        return dates;
+    };
 
     const changeMonth = (offset: number) => {
         setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1));
-    };
-
-    const isToday = (d: number, m: number, y: number) => {
-        const today = new Date();
-        return today.getDate() === d && today.getMonth() === m && today.getFullYear() === y;
     };
 
     const handleEditClick = (plan: Planning) => {
@@ -69,152 +55,177 @@ const CalendarPage: React.FC = () => {
         }
     };
 
+    const monthDates = getMonthDates();
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row items-center justify-between bg-white p-6 rounded-3xl border border-slate-200 shadow-sm gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100">
-                        <CalendarIcon size={24} />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-bold text-slate-900 leading-tight">
-                            {viewDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase()}
-                        </h3>
-                        <p className="text-sm text-slate-500">Gestión de itinerarios mensuales</p>
-                    </div>
-                </div>
+        <>
+            <div className="space-y-6 md:space-y-8 animate-slide-up pb-20">
+                {/* Header */}
+                <div className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full -mr-32 -mt-32"></div>
 
-                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                    <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-slate-600">
-                        <ChevronLeft size={20} />
-                    </button>
-                    <button onClick={() => setViewDate(new Date())} className="px-4 py-2 hover:bg-white hover:shadow-sm rounded-xl font-bold text-sm text-blue-600 transition-all">
-                        HOY
-                    </button>
-                    <button onClick={() => changeMonth(1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-slate-600">
-                        <ChevronRight size={20} />
-                    </button>
-                </div>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
-                <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/50">
-                    {weekDays.map(day => (
-                        <div key={day} className="py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            {day}
-                        </div>
-                    ))}
-                </div>
-                <div className="grid grid-cols-7">
-                    {allDays.map((dateObj, i) => {
-                        const dayPlanning = planning.filter(p =>
-                            p.dia === dateObj.day &&
-                            p.mes === (dateObj.month + 1) &&
-                            p.anio === dateObj.year
-                        );
-
-                        return (
-                            <div
-                                key={i}
-                                className={`min-h-[140px] border-r border-b border-slate-50 p-3 transition-all hover:bg-slate-50/50 ${!dateObj.isCurrentMonth ? 'bg-slate-50/20' : ''}`}
+                    <div className="relative z-10 p-6 md:p-10 flex flex-col xl:flex-row justify-between items-center gap-8">
+                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-black/20 p-2 rounded-2xl border border-slate-200 dark:border-white/10 w-full md:w-auto justify-between md:justify-start">
+                            <button
+                                onClick={() => changeMonth(-1)}
+                                className="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-400 dark:text-slate-500 hover:text-indigo-600 hover:shadow-md transition-all active:scale-95"
                             >
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className={`text-sm font-black transition-all ${isToday(dateObj.day, dateObj.month, dateObj.year)
-                                        ? 'bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-xl shadow-lg shadow-blue-200'
-                                        : dateObj.isCurrentMonth ? 'text-slate-700' : 'text-slate-200'
-                                        }`}>
-                                        {dateObj.day}
-                                    </span>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    {dayPlanning.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            onClick={() => handleEditClick(item)}
-                                            className="px-2 py-1.5 bg-blue-50/50 border border-blue-100/50 rounded-lg text-[10px] font-bold text-blue-700 leading-tight hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all cursor-pointer flex flex-col gap-0.5"
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                <Clock size={10} />
-                                                {item.horario}
-                                            </div>
-                                            <div className="truncate">{item.nombreMedico}</div>
-                                        </div>
-                                    ))}
-                                </div>
+                                <ChevronLeft size={24} />
+                            </button>
+                            <div className="px-4 text-center min-w-[200px]">
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">
+                                    {viewDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).split(' de ').join(' ').toUpperCase()}
+                                </h3>
+                                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
+                                    <CalendarIcon size={10} />
+                                    {viewDate.getFullYear()}
+                                </p>
                             </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Edit Modal */}
-            {editingPlan && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-800">Editar Cita</h3>
-                                <p className="text-xs text-slate-500 font-medium">Actualiza los detalles de la visita</p>
-                            </div>
-                            <button onClick={() => setEditingPlan(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
-                                <X size={20} />
+                            <button
+                                onClick={() => changeMonth(1)}
+                                className="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-400 dark:text-slate-500 hover:text-indigo-600 hover:shadow-md transition-all active:scale-95"
+                            >
+                                <ChevronRight size={24} />
                             </button>
                         </div>
-                        <div className="p-6 space-y-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Médico / Lugar</label>
+
+                        <button
+                            onClick={() => setViewDate(new Date())}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-indigo-100 dark:shadow-none active:scale-95"
+                        >
+                            <CalendarIcon size={18} /> Ir a Hoy
+                        </button>
+                    </div>
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="glass-card rounded-[3.5rem] border border-white dark:border-white/5 shadow-2xl overflow-hidden bg-white/40 dark:bg-slate-900/20 backdrop-blur-xl">
+                    <div className="grid grid-cols-7 bg-indigo-600 dark:bg-indigo-900/40 border-b border-indigo-500/20">
+                        {DAYS.map(day => (
+                            <div key={day} className="py-6 text-center text-[10px] font-black text-white/70 dark:text-indigo-300 uppercase tracking-widest">{day}</div>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-white/5">
+                        {monthDates.map((date, i) => {
+                            const isCurrentMonth = date.getMonth() === viewDate.getMonth();
+                            const isToday = date.toDateString() === new Date().toDateString();
+                            const dayPlans = planning.filter(p => p.dia === date.getDate() && p.mes === (date.getMonth() + 1) && p.anio === date.getFullYear());
+
+                            return (
+                                <div key={i} className={`min-h-[160px] p-4 group transition-all relative ${isCurrentMonth
+                                        ? 'bg-white dark:bg-slate-900/30'
+                                        : 'bg-slate-50/10 dark:bg-black/10 opacity-30 cursor-not-allowed'
+                                    } ${isToday ? 'bg-indigo-50/30 dark:bg-indigo-500/5' : ''}`}>
+                                    <div className="flex justify-between items-start mb-3 relative z-10">
+                                        <span className={`text-[12px] font-black leading-none ${isToday
+                                                ? 'text-white bg-indigo-600 w-9 h-9 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none animate-pulse'
+                                                : isCurrentMonth ? 'text-slate-900 dark:text-white mt-2 ml-2' : 'text-slate-300 mt-2 ml-2'
+                                            }`}>
+                                            {date.getDate()}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-1.5 relative z-10">
+                                        {dayPlans.slice(0, 3).map(p => (
+                                            <div
+                                                key={p.id}
+                                                onClick={() => handleEditClick(p)}
+                                                className="text-[8px] font-black bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 p-2 rounded-xl text-slate-600 dark:text-slate-300 truncate uppercase tracking-tight shadow-sm hover:border-indigo-200 transition-colors cursor-pointer"
+                                            >
+                                                <div className="flex items-center gap-1 mb-0.5">
+                                                    <Clock size={10} className="text-indigo-500" />
+                                                    {p.horario}
+                                                </div>
+                                                {p.nombreMedico.split('')[0]}. {p.nombreMedico.split(' ').slice(1).join(' ')}
+                                            </div>
+                                        ))}
+                                        {dayPlans.length > 3 && (
+                                            <div className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 pl-2 uppercase tracking-widest py-1">
+                                                + {dayPlans.length - 3} actividades
+                                            </div>
+                                        )}
+                                    </div>
+                                    {isToday && (
+                                        <div className="absolute inset-0 border-2 border-indigo-500/20 dark:border-indigo-500/40 rounded-none pointer-events-none" />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* Edit Modal - Mobile Optimized */}
+            {editingPlan && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 dark:bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300 overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-500 border border-white dark:border-white/10 my-auto">
+                        <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-slate-900 relative shrink-0">
+                            <div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">Editar Cita</h3>
+                                <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-black uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
+                                    <span className="w-8 h-px bg-indigo-500 opacity-30" />
+                                    Actualizar detalles
+                                </p>
+                            </div>
+                            <button onClick={() => setEditingPlan(null)} className="w-12 h-12 bg-slate-50 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-950 dark:hover:text-white transition-all border border-slate-100 dark:border-white/10 group">
+                                <X size={20} className="group-hover:rotate-90 transition-transform" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Médico / Lugar</label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                                     <input
-                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 dark:text-white"
                                         value={formData.nombreMedico || ''}
                                         onChange={e => setFormData({ ...formData, nombreMedico: e.target.value })}
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Horario</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Horario</label>
                                 <div className="relative">
-                                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                                     <input
-                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 dark:text-white"
                                         placeholder="Ej: 09:00"
                                         value={formData.horario || ''}
                                         onChange={e => setFormData({ ...formData, horario: e.target.value })}
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Dirección</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Dirección</label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                                     <input
-                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 dark:text-white"
                                         value={formData.direccion || ''}
                                         onChange={e => setFormData({ ...formData, direccion: e.target.value })}
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className="p-6 bg-slate-50 flex gap-3">
+
+                        <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex gap-3 shrink-0">
                             <button
                                 onClick={handleDeletePlan}
-                                className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
                                 title="Eliminar cita"
                             >
-                                <Trash2 size={24} />
+                                <Trash2 size={20} />
                             </button>
                             <div className="flex-1"></div>
                             <button
                                 onClick={() => setEditingPlan(null)}
-                                className="px-6 py-2.5 font-bold text-slate-600 hover:text-slate-800 transition-colors"
+                                className="px-6 py-3 font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleSaveEdit}
-                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200 transition-all active:scale-95"
+                                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95"
                             >
                                 <Save size={18} />
                                 Guardar
@@ -223,7 +234,7 @@ const CalendarPage: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 
