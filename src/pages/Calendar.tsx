@@ -109,17 +109,17 @@ const CalendarPage: React.FC = () => {
                         {monthDates.map((date, i) => {
                             const isCurrentMonth = date.getMonth() === viewDate.getMonth();
                             const isToday = date.toDateString() === new Date().toDateString();
-                            const dayPlans = planning.filter(p => p.dia === date.getDate() && p.mes === (date.getMonth() + 1) && p.anio === date.getFullYear());
+                            const dayPlans = planning.filter(p => p.dia === date.getDate() && p.mes === (date.getMonth() + 1) && p.Año === date.getFullYear());
 
                             return (
                                 <div key={i} className={`min-h-[160px] p-4 group transition-all relative ${isCurrentMonth
-                                        ? 'bg-white dark:bg-slate-900/30'
-                                        : 'bg-slate-50/10 dark:bg-black/10 opacity-30 cursor-not-allowed'
+                                    ? 'bg-white dark:bg-slate-900/30'
+                                    : 'bg-slate-50/10 dark:bg-black/10 opacity-30 cursor-not-allowed'
                                     } ${isToday ? 'bg-indigo-50/30 dark:bg-indigo-500/5' : ''}`}>
                                     <div className="flex justify-between items-start mb-3 relative z-10">
                                         <span className={`text-[12px] font-black leading-none ${isToday
-                                                ? 'text-white bg-indigo-600 w-9 h-9 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none animate-pulse'
-                                                : isCurrentMonth ? 'text-slate-900 dark:text-white mt-2 ml-2' : 'text-slate-300 mt-2 ml-2'
+                                            ? 'text-white bg-indigo-600 w-9 h-9 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none animate-pulse'
+                                            : isCurrentMonth ? 'text-slate-900 dark:text-white mt-2 ml-2' : 'text-slate-300 mt-2 ml-2'
                                             }`}>
                                             {date.getDate()}
                                         </span>

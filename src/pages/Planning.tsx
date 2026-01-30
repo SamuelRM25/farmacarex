@@ -62,7 +62,7 @@ const PlanningPage: React.FC = () => {
         const existingPlans = planning.filter(p =>
             p.dia === targetDate.getDate() &&
             p.mes === (targetDate.getMonth() + 1) &&
-            p.anio === targetDate.getFullYear()
+            p.Año === targetDate.getFullYear()
         );
 
         let nextHour = 8;
@@ -80,7 +80,7 @@ const PlanningPage: React.FC = () => {
             id: Date.now().toString(),
             dia: targetDate.getDate(),
             mes: targetDate.getMonth() + 1,
-            anio: targetDate.getFullYear(),
+            Año: targetDate.getFullYear(),
             gira: selectedTour,
             horario: formattedHour,
             direccion: client.direccion,
@@ -211,7 +211,7 @@ const PlanningPage: React.FC = () => {
                         {weekDates.map((date, i) => {
                             const isToday = date.toDateString() === new Date().toDateString();
                             const dayPlans = planning.filter(p => {
-                                const matchesDate = p.dia === date.getDate() && p.mes === (date.getMonth() + 1) && p.anio === date.getFullYear();
+                                const matchesDate = p.dia === date.getDate() && p.mes === (date.getMonth() + 1) && p.Año === date.getFullYear();
                                 const matchesTour = !filterTour || p.gira === filterTour;
                                 return matchesDate && matchesTour;
                             });
@@ -319,7 +319,7 @@ const PlanningPage: React.FC = () => {
                                 const isToday = date.toDateString() === new Date().toDateString();
                                 const isCurrentMonth = date.getMonth() === viewDate.getMonth();
                                 const dayPlans = planning.filter(p => {
-                                    const matchesDate = p.dia === date.getDate() && p.mes === (date.getMonth() + 1) && p.anio === date.getFullYear();
+                                    const matchesDate = p.dia === date.getDate() && p.mes === (date.getMonth() + 1) && p.Año === date.getFullYear();
                                     const matchesTour = !filterTour || p.gira === filterTour;
                                     return matchesDate && matchesTour;
                                 });

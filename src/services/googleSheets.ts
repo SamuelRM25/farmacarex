@@ -159,7 +159,7 @@ export const googleSheetsService = {
         const setupHeaders = [
             { sheet: 'Clientes', headers: ['ID', 'Colegiado', 'Especialidad', 'Nombre', 'Apellido', 'Dirección', 'Municipio', 'Departamento'] },
             { sheet: 'Medicamentos', headers: ['ID', 'Nombre', 'P. Público', 'P. Farmacia', 'Bonif. 2-9', 'Bonif. 10+', 'P. Médico', 'Ofertas', 'Stock'] },
-            { sheet: 'Planificacion', headers: ['ID', 'Gira', 'Dia', 'Mes', 'Anio', 'Horario', 'Dirección', 'Nombre Médico'] },
+            { sheet: 'Planificacion', headers: ['ID', 'Gira', 'Dia', 'Mes', 'Año', 'Horario', 'Dirección', 'Nombre Médico'] },
             { sheet: 'Visitas', headers: ['ID', 'ClientID', 'ClientName', 'Fecha', 'Hora', 'Gira', 'Notas', 'Total Venta'] },
             { sheet: 'Ventas_Detalle', headers: ['ID', 'VisitID', 'MedicineID', 'MedicineName', 'Cantidad', 'Precio', 'Subtotal'] }
         ];

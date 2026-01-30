@@ -10,7 +10,7 @@ const Dashboard: React.FC = () => {
     const todayPlanning = planning.filter(p =>
         p.dia === today.getDate() &&
         p.mes === (today.getMonth() + 1) &&
-        p.anio === today.getFullYear()
+        p.Año === today.getFullYear()
     );
 
     const totalSales = visits.reduce((acc, v) => acc + (v.sale?.total || 0), 0);

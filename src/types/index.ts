@@ -58,7 +58,7 @@ export interface Planning {
     gira: string;
     dia: number;
     mes: number;
-    anio: number;
+    Año: number;
     horario: string;
     direccion: string;
     nombreMedico: string;

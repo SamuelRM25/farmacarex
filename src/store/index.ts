@@ -130,7 +130,7 @@ export const useStore = create<AppState>()(
                             gira: row[1] || '',
                             dia: Number(row[2]),
                             mes: Number(row[3]),
-                            anio: Number(row[4]),
+                            Año: Number(row[4]),
                             horario: row[5] || '',
                             direccion: row[6] || '',
                             nombreMedico: row[7] || '',
@@ -229,7 +229,7 @@ export const useStore = create<AppState>()(
                             setCurrentUser({ ...currentUser, token: newToken });
                         }
                         await googleSheetsService.appendValues(spreadsheetId, 'Planificacion!A2', [[
-                            plan.id, plan.gira, plan.dia.toString(), plan.mes.toString(), plan.anio.toString(),
+                            plan.id, plan.gira, plan.dia.toString(), plan.mes.toString(), plan.Año.toString(),
                             plan.horario, plan.direccion, plan.nombreMedico
                         ]]);
                     } catch (error: any) {
@@ -250,7 +250,7 @@ export const useStore = create<AppState>()(
                             setCurrentUser({ ...currentUser, token: newToken });
                         }
                         const values = newPlanning.map(p => [
-                            p.id, p.gira, p.dia.toString(), p.mes.toString(), p.anio.toString(),
+                            p.id, p.gira, p.dia.toString(), p.mes.toString(), p.Año.toString(),
                             p.horario, p.direccion, p.nombreMedico
                         ]);
                         await googleSheetsService.updateValues(spreadsheetId, 'Planificacion!A2', values);
@@ -273,7 +273,7 @@ export const useStore = create<AppState>()(
                         }
                         await googleSheetsService.clearValues(spreadsheetId, 'Planificacion!A2:Z');
                         const values = newPlanning.map(p => [
-                            p.id, p.gira, p.dia.toString(), p.mes.toString(), p.anio.toString(),
+                            p.id, p.gira, p.dia.toString(), p.mes.toString(), p.Año.toString(),
                             p.horario, p.direccion, p.nombreMedico
                         ]);
                         if (values.length > 0) {

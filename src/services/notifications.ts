@@ -43,7 +43,7 @@ export const notificationService = {
         const currentYear = now.getFullYear();
 
         planning.forEach(item => {
-            if (item.dia === currentDay && item.mes === currentMonth && item.anio === currentYear) {
+            if (item.dia === currentDay && item.mes === currentMonth && item.Año === currentYear) {
                 // Parse time (expecting HH:mm)
                 const [hours, minutes] = item.horario.split(':').map(Number);
                 if (isNaN(hours)) return;

@@ -94,7 +94,7 @@ export const exportPlanningReport = (planning: any[]) => {
 
     // Group planning by day
     const grouped = planning.reduce((acc: any, p) => {
-        const key = `${p.dia}/${p.mes}/${p.anio}`;
+        const key = `${p.dia}/${p.mes}/${p.Año}`;
         if (!acc[key]) acc[key] = [];
         acc[key].push(p);
         return acc;

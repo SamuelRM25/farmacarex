@@ -30,7 +30,7 @@ const VisitsPage: React.FC = () => {
     const year = today.getFullYear();
 
     // Get today's planned entries
-    const todayPlans = planning.filter(p => p.dia === day && p.mes === month && p.anio === year);
+    const todayPlans = planning.filter(p => p.dia === day && p.mes === month && p.Año === year);
 
     // Map planned entries to actual client objects
     const plannedClients = todayPlans.map(plan => {
