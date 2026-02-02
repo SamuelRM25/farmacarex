@@ -14,12 +14,13 @@ export const exportVisitsReport = (visits: any[]) => {
         v.clientName,
         v.hora,
         v.gira,
+        v.notas || '',
         v.sale ? `Q ${v.sale.total.toFixed(2)}` : 'N/A'
     ]);
 
     autoTable(doc, {
         startY: 40,
-        head: [['Cliente', 'Hora', 'Gira', 'Venta']],
+        head: [['Cliente', 'Hora', 'Gira', 'Notas', 'Venta']],
         body: tableData,
         theme: 'grid',
         headStyles: { fillColor: [37, 99, 235] }
