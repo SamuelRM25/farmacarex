@@ -63,6 +63,7 @@ export interface Planning {
     direccion: string;
     nombreMedico: string;
     clienteId?: string;
+    calendarEventId?: string;
 }
 
 export interface Tour {

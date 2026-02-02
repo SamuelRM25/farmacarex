@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import type { Planning, Client } from '../types';
 import { exportPlanningReport } from '../utils/pdfExport';
 import { exportElementAsImage } from '../utils/imageExport';
+import DigitalClockPicker from '../components/DigitalClockPicker';
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -17,6 +18,7 @@ const PlanningPage: React.FC = () => {
     const [selectedMunicipality, setSelectedMunicipality] = useState('');
     const [selectedTour, setSelectedTour] = useState('');
     const [filterTour, setFilterTour] = useState('');
+    const [editingTimePlan, setEditingTimePlan] = useState<Planning | null>(null);
 
     const municipalities = Array.from(new Set(clients.map(c => c.municipio))).filter(Boolean).sort();
 
@@ -272,13 +274,12 @@ const PlanningPage: React.FC = () => {
                                                     </div>
 
                                                     <div className="space-y-1.5">
-                                                        <div className="flex items-center gap-2 text-[8px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest bg-white dark:bg-slate-900/50 p-1.5 rounded-lg">
-                                                            <Clock size={10} className="text-indigo-400" />
-                                                            <input
-                                                                className="bg-transparent border-none p-0 outline-none w-12 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:ring-0"
-                                                                value={item.horario}
-                                                                onChange={(e) => updatePlan({ ...item, horario: e.target.value })}
-                                                            />
+                                                        <div
+                                                            onClick={() => setEditingTimePlan(item)}
+                                                            className="flex items-center gap-2 text-[8px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest bg-white dark:bg-slate-900/50 p-1.5 rounded-lg cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors group/time"
+                                                        >
+                                                            <Clock size={10} className="text-indigo-400 group-hover/time:scale-110 transition-transform" />
+                                                            <span>{item.horario}</span>
                                                         </div>
                                                         {item.direccion && (
                                                             <div className="flex items-start gap-1.5 text-[8px] text-slate-400 dark:text-slate-500 font-medium bg-white dark:bg-slate-900/50 p-1.5 rounded-lg">
@@ -482,6 +483,14 @@ const PlanningPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {editingTimePlan && (
+                <DigitalClockPicker
+                    value={editingTimePlan.horario}
+                    onChange={(newTime) => updatePlan({ ...editingTimePlan, horario: newTime })}
+                    onClose={() => setEditingTimePlan(null)}
+                />
             )}
         </>
     );

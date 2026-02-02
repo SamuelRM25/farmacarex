@@ -5,33 +5,30 @@
    Premium Light & Dark Modes
    =================================== */
 
-:root {
+@theme {
   /* Typography */
-  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Light Mode - Clean & Professional */
-  --color-primary: #4F46E5;
-  --color-primary-hover: #4338CA;
-  --color-primary-light: #EEF2FF;
-  --color-secondary: #14B8A6;
-  --color-accent: #F59E0B;
+  /* Design Tokens mapped to standard Tailwind colors for utility generation */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
 
-  /* Surfaces */
-  --bg-app: #FAFAFA;
-  --bg-surface: #FFFFFF;
-  --bg-surface-secondary: #F8FAFC;
-  --bg-hover: #F1F5F9;
+  --color-bg-app: var(--bg-app);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-secondary: var(--bg-surface-secondary);
+  --color-bg-hover: var(--bg-hover);
 
-  /* Text */
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-tertiary: #94A3B8;
-  --text-inverse: #FFFFFF;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-inverse: var(--text-inverse);
 
-  /* Borders */
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --border-dark: #94A3B8;
+  --color-border-light: var(--border-light);
+  --color-border-medium: var(--border-medium);
+  --color-border-dark: var(--border-dark);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -40,43 +37,58 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
 
   /* Glass Effects */
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --color-glass-shadow: var(--glass-shadow);
+}
+
+:root {
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-light: #EEF2FF;
+  --secondary: #14B8A6;
+  --accent: #F59E0B;
+
+  --bg-app: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F8FAFC;
+  --bg-hover: #F1F5F9;
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #94A3B8;
+  --text-inverse: #FFFFFF;
+
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --border-dark: #94A3B8;
+
   --glass-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
 }
 
 .dark {
-  /* Dark Mode - Premium Cyberpunk */
-  --color-primary: #818CF8;
-  --color-primary-hover: #6366F1;
-  --color-primary-light: #312E81;
-  --color-secondary: #2DD4BF;
-  --color-accent: #FBBF24;
+  --primary: #818CF8;
+  --primary-hover: #6366F1;
+  --primary-light: #312E81;
+  --secondary: #2DD4BF;
+  --accent: #FBBF24;
 
-  /* Surfaces */
   --bg-app: #0A0E1A;
   --bg-surface: #0F172A;
   --bg-surface-secondary: #1E293B;
   --bg-hover: #334155;
 
-  /* Text */
   --text-primary: #F1F5F9;
   --text-secondary: #CBD5E1;
   --text-tertiary: #64748B;
   --text-inverse: #0F172A;
 
-  /* Borders */
   --border-light: rgba(255, 255, 255, 0.05);
   --border-medium: rgba(255, 255, 255, 0.1);
   --border-dark: rgba(255, 255, 255, 0.2);
 
-  /* Shadows */
-  --shadow-sm: 0 0 0 1px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 0 0 1px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 0 0 1px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 0 0 1px rgba(0, 0, 0, 0.05);
-
-  /* Glass Effects */
   --glass-bg: rgba(15, 23, 42, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);

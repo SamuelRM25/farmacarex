@@ -11,11 +11,12 @@ declare global {
 }
 
 // These should be configured in a .env file for production
-const CLIENT_ID = '223058802907-j8gtsdvb0m432a6ffu2e1nfk6m9n453f.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyCK_KbQDvcJdfu685g1SIW-fMK8-MUozXM';
+const CLIENT_ID = '53073594248-jcctrhge6h4rg3fqorchgekphmr4va1r.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyBS5CXnwZsWnzW0xy48RYK_zU73OytTUXo';
 const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 const DRIVE_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+const CALENDAR_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar';
 
 let tokenClient: any;
 let gapiInited = false;
@@ -44,12 +45,20 @@ export const googleSheetsService = {
                     try {
                         await window.gapi.client.init({
                             apiKey: API_KEY,
-                            discoveryDocs: [DISCOVERY_DOC, DRIVE_DISCOVERY_DOC],
+                            discoveryDocs: [DISCOVERY_DOC, DRIVE_DISCOVERY_DOC, CALENDAR_DISCOVERY_DOC],
                         });
                         gapiInited = true;
                         checkAllInited();
-                    } catch (error) {
+                    } catch (error: any) {
                         console.error('Error al inicializar GAPI:', error);
+                        if (error?.result?.error?.code === 403 || error?.status === 403) {
+                            console.warn('⚠️ 403 FORBIDDEN: La API de Google Calendar no está habilitada o está restringida para esta API Key.');
+                            console.warn('Sigue las instrucciones en el archivo walkthrough.md para solucionarlo.');
+                        }
+                        // Still mark as inited so the app doesn't hang, 
+                        // but subsequent calendar calls will fail gracefully
+                        gapiInited = true;
+                        checkAllInited();
                     }
                 });
             };
@@ -159,7 +168,7 @@ export const googleSheetsService = {
         const setupHeaders = [
             { sheet: 'Clientes', headers: ['ID', 'Colegiado', 'Especialidad', 'Nombre', 'Apellido', 'Dirección', 'Municipio', 'Departamento'] },
             { sheet: 'Medicamentos', headers: ['ID', 'Nombre', 'P. Público', 'P. Farmacia', 'Bonif. 2-9', 'Bonif. 10+', 'P. Médico', 'Ofertas', 'Stock'] },
-            { sheet: 'Planificacion', headers: ['ID', 'Gira', 'Dia', 'Mes', 'Año', 'Horario', 'Dirección', 'Nombre Médico'] },
+            { sheet: 'Planificacion', headers: ['ID', 'Gira', 'Dia', 'Mes', 'Año', 'Horario', 'Dirección', 'Nombre Médico', 'CalendarEventID'] },
             { sheet: 'Visitas', headers: ['ID', 'ClientID', 'ClientName', 'Fecha', 'Hora', 'Gira', 'Notas', 'Total Venta'] },
             { sheet: 'Ventas_Detalle', headers: ['ID', 'VisitID', 'MedicineID', 'MedicineName', 'Cantidad', 'Precio', 'Subtotal'] }
         ];
@@ -228,6 +237,49 @@ export const googleSheetsService = {
         return await window.gapi.client.sheets.spreadsheets.values.clear({
             spreadsheetId,
             range,
+        });
+    },
+
+    /**
+     * Create a Calendar Event
+     */
+    createCalendarEvent: async (event: any) => {
+        if (!window.gapi?.client?.calendar) {
+            console.error('La API de Google Calendar no está disponible.');
+            throw new Error('CALENDAR_API_NOT_AVAILABLE');
+        }
+        return await window.gapi.client.calendar.events.insert({
+            calendarId: 'primary',
+            resource: event,
+        });
+    },
+
+    /**
+     * Update a Calendar Event
+     */
+    updateCalendarEvent: async (eventId: string, event: any) => {
+        if (!window.gapi?.client?.calendar) {
+            console.error('La API de Google Calendar no está disponible.');
+            throw new Error('CALENDAR_API_NOT_AVAILABLE');
+        }
+        return await window.gapi.client.calendar.events.update({
+            calendarId: 'primary',
+            eventId: eventId,
+            resource: event,
+        });
+    },
+
+    /**
+     * Delete a Calendar Event
+     */
+    deleteCalendarEvent: async (eventId: string) => {
+        if (!window.gapi?.client?.calendar) {
+            console.error('La API de Google Calendar no está disponible.');
+            throw new Error('CALENDAR_API_NOT_AVAILABLE');
+        }
+        return await window.gapi.client.calendar.events.delete({
+            calendarId: 'primary',
+            eventId: eventId,
         });
     }
 };

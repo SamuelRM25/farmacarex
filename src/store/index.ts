@@ -134,6 +134,7 @@ export const useStore = create<AppState>()(
                             horario: row[5] || '',
                             direccion: row[6] || '',
                             nombreMedico: row[7] || '',
+                            calendarEventId: row[8] || undefined
                         })) : []
                     });
                 } catch (error: any) {
@@ -221,7 +222,51 @@ export const useStore = create<AppState>()(
 
             addPlan: async (plan: Planning) => {
                 const { spreadsheetId, planning, currentUser, setCurrentUser } = get();
-                set({ planning: [...planning, plan] });
+
+                // 1. Try to create event in Google Calendar
+                let calendarEventId = undefined;
+                try {
+                    if (googleSheetsService.hasToken() || currentUser?.token) {
+                        if (!googleSheetsService.hasToken() && currentUser) {
+                            const newToken = await googleSheetsService.authenticate({ prompt: 'none' });
+                            setCurrentUser({ ...currentUser, token: newToken });
+                        }
+
+                        // Construct DateTime strings
+                        // Format: YYYY-MM-DDTHH:mm:ss
+                        const dateStr = `${plan.Año}-${String(plan.mes).padStart(2, '0')}-${String(plan.dia).padStart(2, '0')}`;
+                        const startDateTime = `${dateStr}T${plan.horario}:00`;
+
+                        // Calculate end time (assuming 1 hour duration by default)
+                        const [hour, minute] = plan.horario.split(':').map(Number);
+                        const endHour = hour + 1; // Simple +1 hour
+                        const endDateTime = `${dateStr}T${String(endHour).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}:00`;
+
+                        const event = {
+                            summary: `Visita: ${plan.nombreMedico}`,
+                            location: plan.direccion,
+                            description: `Gira: ${plan.gira}`,
+                            start: {
+                                dateTime: startDateTime,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                            },
+                            end: {
+                                dateTime: endDateTime,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                            },
+                        };
+
+                        const response = await googleSheetsService.createCalendarEvent(event);
+                        calendarEventId = response.result.id;
+                    }
+                } catch (error) {
+                    console.error('Error creating Calendar event:', error);
+                    // Continue even if calendar fails
+                }
+
+                const newPlan = { ...plan, calendarEventId };
+                set({ planning: [...planning, newPlan] });
+
                 if (spreadsheetId) {
                     try {
                         if (!googleSheetsService.hasToken() && currentUser) {
@@ -229,8 +274,8 @@ export const useStore = create<AppState>()(
                             setCurrentUser({ ...currentUser, token: newToken });
                         }
                         await googleSheetsService.appendValues(spreadsheetId, 'Planificacion!A2', [[
-                            plan.id, plan.gira, plan.dia.toString(), plan.mes.toString(), plan.Año.toString(),
-                            plan.horario, plan.direccion, plan.nombreMedico
+                            newPlan.id, newPlan.gira, newPlan.dia.toString(), newPlan.mes.toString(), newPlan.Año.toString(),
+                            newPlan.horario, newPlan.direccion, newPlan.nombreMedico, newPlan.calendarEventId || ''
                         ]]);
                     } catch (error: any) {
                         console.error('Error adding plan to Sheets:', error);
@@ -241,6 +286,40 @@ export const useStore = create<AppState>()(
 
             updatePlan: async (plan: Planning) => {
                 const { spreadsheetId, planning, currentUser, setCurrentUser } = get();
+
+                // 1. Update Calendar Event if exists
+                if (plan.calendarEventId) {
+                    try {
+                        if (!googleSheetsService.hasToken() && currentUser) {
+                            const newToken = await googleSheetsService.authenticate({ prompt: 'none' });
+                            setCurrentUser({ ...currentUser, token: newToken });
+                        }
+
+                        const dateStr = `${plan.Año}-${String(plan.mes).padStart(2, '0')}-${String(plan.dia).padStart(2, '0')}`;
+                        const startDateTime = `${dateStr}T${plan.horario}:00`;
+                        const [hour, minute] = plan.horario.split(':').map(Number);
+                        const endDateTime = `${dateStr}T${String(hour + 1).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}:00`;
+
+                        const event = {
+                            summary: `Visita: ${plan.nombreMedico}`,
+                            location: plan.direccion,
+                            description: `Gira: ${plan.gira}`,
+                            start: {
+                                dateTime: startDateTime,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                            },
+                            end: {
+                                dateTime: endDateTime,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                            },
+                        };
+
+                        await googleSheetsService.updateCalendarEvent(plan.calendarEventId, event);
+                    } catch (error) {
+                        console.error('Error updating Calendar event:', error);
+                    }
+                }
+
                 const newPlanning = planning.map(p => p.id === plan.id ? plan : p);
                 set({ planning: newPlanning });
                 if (spreadsheetId) {
@@ -251,7 +330,7 @@ export const useStore = create<AppState>()(
                         }
                         const values = newPlanning.map(p => [
                             p.id, p.gira, p.dia.toString(), p.mes.toString(), p.Año.toString(),
-                            p.horario, p.direccion, p.nombreMedico
+                            p.horario, p.direccion, p.nombreMedico, p.calendarEventId || ''
                         ]);
                         await googleSheetsService.updateValues(spreadsheetId, 'Planificacion!A2', values);
                     } catch (error: any) {
@@ -263,6 +342,20 @@ export const useStore = create<AppState>()(
 
             removePlan: async (id: string) => {
                 const { spreadsheetId, planning, currentUser, setCurrentUser } = get();
+                const planToRemove = planning.find(p => p.id === id);
+
+                if (planToRemove?.calendarEventId) {
+                    try {
+                        if (!googleSheetsService.hasToken() && currentUser) {
+                            const newToken = await googleSheetsService.authenticate({ prompt: 'none' });
+                            setCurrentUser({ ...currentUser, token: newToken });
+                        }
+                        await googleSheetsService.deleteCalendarEvent(planToRemove.calendarEventId);
+                    } catch (error) {
+                        console.error('Error deleting Calendar event:', error);
+                    }
+                }
+
                 const newPlanning = planning.filter(p => p.id !== id);
                 set({ planning: newPlanning });
                 if (spreadsheetId) {
@@ -274,7 +367,7 @@ export const useStore = create<AppState>()(
                         await googleSheetsService.clearValues(spreadsheetId, 'Planificacion!A2:Z');
                         const values = newPlanning.map(p => [
                             p.id, p.gira, p.dia.toString(), p.mes.toString(), p.Año.toString(),
-                            p.horario, p.direccion, p.nombreMedico
+                            p.horario, p.direccion, p.nombreMedico, p.calendarEventId || ''
                         ]);
                         if (values.length > 0) {
                             await googleSheetsService.updateValues(spreadsheetId, 'Planificacion!A2', values);
