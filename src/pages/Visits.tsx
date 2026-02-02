@@ -3,7 +3,6 @@ import { Play, CheckCircle2, Plus, X, ArrowLeft, Download, Package, Calendar, Ca
 import { useStore } from '../store';
 import type { Visit, Medicine, SaleItem } from '../types';
 import { exportVisitsReport } from '../utils/pdfExport';
-import { exportElementAsImage } from '../utils/imageExport';
 
 const VisitsPage: React.FC = () => {
     const { visits, medicines, clients, planning, addVisit } = useStore();
