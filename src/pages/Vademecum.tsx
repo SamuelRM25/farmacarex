@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Pill, X } from 'lucide-react';
+import { Search, Pill, X, LayoutGrid, List, Plus } from 'lucide-react';
 import { MEDICATIONS } from '../data/medications';
 import type { Categoria, Marca, Medication, PriceTier } from '../types';
 import { CATEGORIAS, MARCAS, MARCA_ORDER } from '../types';
 import MedicationCard from '../components/MedicationCard';
+import MedicationRow from '../components/MedicationRow';
 import PriceTierToggle from '../components/PriceTierToggle';
 import { useQuoterStore } from '../store/quoterStore';
 import { PRICES } from '../data/prices';
@@ -24,6 +25,8 @@ const CATEGORIA_ORDER: Categoria[] = [
   'dispositivo',
 ];
 
+type ViewMode = 'grid' | 'list';
+
 const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
 
 function compareMeds(a: Medication, b: Medication): number {
@@ -32,16 +35,28 @@ function compareMeds(a: Medication, b: Medication): number {
   return collator.compare(a.presentacion, b.presentacion);
 }
 
+const VIEW_MODE_KEY = 'farmacarex:vademecum:view';
+
 export default function Vademecum() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [marca, setMarca] = useState<Marca | 'todas'>('todas');
   const [cat, setCat] = useState<Categoria | 'todas'>('todas');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'grid';
+    const stored = window.localStorage.getItem(VIEW_MODE_KEY);
+    return stored === 'list' ? 'list' : 'grid';
+  });
   const [detailMed, setDetailMed] = useState<Medication | null>(null);
   const [pickerMed, setPickerMed] = useState<Medication | null>(null);
   const [pickerTier, setPickerTier] = useState<PriceTier>('medico');
 
   const addItem = useQuoterStore((s) => s.addItem);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
+  }, [viewMode]);
 
   const brandCounts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -104,19 +119,58 @@ export default function Vademecum() {
     const chosen = pickerMed;
     const tier = pickerTier;
     setPickerMed(null);
-    navigate(`/cotizador?focus=${chosen.id}&tier=${tier}`);
+    window.setTimeout(() => {
+      navigate(`/cotizador?focus=${chosen.id}&tier=${tier}`);
+    }, 100);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Vademécum
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {MEDICATIONS.length} productos · {brandCounts['ascavi'] ?? 0} Ascavi · {brandCounts['medicbrand'] ?? 0} MedicBrand · {brandCounts['farma-cerex'] ?? 0} FarmaCarex
-          </p>
+        <div className="flex items-end justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Vademécum
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {MEDICATIONS.length} productos · {brandCounts['ascavi'] ?? 0} Ascavi · {brandCounts['medicbrand'] ?? 0} MedicBrand · {brandCounts['farma-cerex'] ?? 0} FarmaCarex
+            </p>
+          </div>
+
+          <div
+            role="radiogroup"
+            aria-label="Modo de vista"
+            className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm"
+          >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={viewMode === 'grid'}
+              onClick={() => setViewMode('grid')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
+                viewMode === 'grid'
+                  ? 'bg-blue-700 text-white shadow'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              Cuadrícula
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={viewMode === 'list'}
+              onClick={() => setViewMode('list')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
+                viewMode === 'list'
+                  ? 'bg-blue-700 text-white shadow'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              Lista
+            </button>
+          </div>
         </div>
 
         <div className="relative">
@@ -230,29 +284,46 @@ export default function Vademecum() {
                     {items.length} producto{items.length === 1 ? '' : 's'}
                   </span>
                 </header>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {items.map((med) => (
-                    <MedicationCard
-                      key={med.id}
-                      med={med}
-                      onOpenDetail={openDetail}
-                    />
-                  ))}
-                </div>
+                {viewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {items.map((med) => (
+                      <MedicationCard key={med.id} med={med} onOpenDetail={openDetail} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {items.map((med) => (
+                      <MedicationRow key={med.id} med={med} onOpenDetail={openDetail} />
+                    ))}
+                  </div>
+                )}
               </section>
             );
           })}
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((med) => (
             <MedicationCard key={med.id} med={med} onOpenDetail={openDetail} />
           ))}
         </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((med) => (
+            <MedicationRow key={med.id} med={med} onOpenDetail={openDetail} />
+          ))}
+        </div>
       )}
 
       {detailMed && (
-        <ModalDetail med={detailMed} onClose={() => setDetailMed(null)} />
+        <ModalDetail
+          med={detailMed}
+          onClose={() => setDetailMed(null)}
+          onOpenPicker={(med) => {
+            setPickerMed(med);
+            setDetailMed(null);
+          }}
+        />
       )}
 
       {pickerMed && (
@@ -268,7 +339,15 @@ export default function Vademecum() {
   );
 }
 
-function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void }) {
+function ModalDetail({
+  med,
+  onClose,
+  onOpenPicker,
+}: {
+  med: Medication;
+  onClose: () => void;
+  onOpenPicker: (med: Medication) => void;
+}) {
   const cat = CATEGORIAS[med.categoria];
   const brand = MARCAS[med.marca];
   const tierCount = tiersFor(PRICES[med.id]).length;
@@ -283,7 +362,7 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
         className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex items-start justify-between gap-3">
+        <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex items-start justify-between gap-3 z-10">
           <div>
             <div className="flex flex-wrap items-center gap-1.5 mb-2">
               <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${brand.bg} ${brand.color}`}>
@@ -302,7 +381,7 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
             <p className="text-sm text-slate-700 mt-1">{med.presentacion}</p>
             {tierCount > 0 && (
               <p className="text-xs text-blue-700 mt-2 font-semibold">
-                Disponible en {tierCount} nivel{tierCount === 1 ? '' : 'es'} de precio · agregá desde el cotizador para verlos.
+                Disponible en {tierCount} nivel{tierCount === 1 ? '' : 'es'} de precio · elegí el nivel al agregarlo al cotizador.
               </p>
             )}
           </div>
@@ -433,6 +512,19 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
             </p>
           )}
         </div>
+
+        {tierCount > 0 && (
+          <div className="sticky bottom-0 bg-white border-t border-slate-100 px-5 py-4">
+            <button
+              type="button"
+              onClick={() => onOpenPicker(med)}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition shadow-sm bg-red-500 hover:bg-red-600 text-white"
+            >
+              <Plus className="w-5 h-5" />
+              Agregar al cotizador
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

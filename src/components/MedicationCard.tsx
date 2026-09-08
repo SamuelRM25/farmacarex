@@ -1,9 +1,7 @@
 import type { Medication } from '../types';
 import { MARCAS, CATEGORIAS } from '../types';
-import { Plus, Info, Pill } from 'lucide-react';
+import { Info, Pill } from 'lucide-react';
 import { useQuoterStore } from '../store/quoterStore';
-import { PRICES } from '../data/prices';
-import { defaultTier } from '../lib/pricing';
 
 interface Props {
   med: Medication;
@@ -13,15 +11,9 @@ interface Props {
 export default function MedicationCard({ med, onOpenDetail }: Props) {
   const brand = MARCAS[med.marca];
   const cat = CATEGORIAS[med.categoria];
-  const addItem = useQuoterStore((s) => s.addItem);
   const inCart = useQuoterStore((s) =>
     s.items.filter((i) => i.medId === med.id).reduce((acc, i) => acc + i.qty, 0)
   );
-
-  const handleAdd = () => {
-    const tier = defaultTier(PRICES[med.id]);
-    addItem(med.id, tier);
-  };
 
   return (
     <article className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden">
@@ -37,7 +29,7 @@ export default function MedicationCard({ med, onOpenDetail }: Props) {
           </div>
           {inCart > 0 && (
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
-              {inCart} en cotizador
+              {inCart} en cotiz.
             </span>
           )}
         </div>
@@ -59,7 +51,7 @@ export default function MedicationCard({ med, onOpenDetail }: Props) {
             <span className="font-semibold">Composición:</span>{' '}
             {med.formula && med.formula.length > 0
               ? med.formula
-                  .map((c) => c.cantidad ? `${c.componente} (${c.cantidad})` : c.componente)
+                  .map((c) => (c.cantidad ? `${c.componente} (${c.cantidad})` : c.componente))
                   .join(' · ')
               : med.nombreGenerico ?? '—'}
           </div>
@@ -71,18 +63,10 @@ export default function MedicationCard({ med, onOpenDetail }: Props) {
         <button
           type="button"
           onClick={() => onOpenDetail(med)}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
         >
           <Info className="w-4 h-4" />
           Ficha técnica
-        </button>
-        <button
-          type="button"
-          onClick={handleAdd}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-bold rounded-lg transition shadow-sm bg-blue-700 hover:bg-blue-800 text-white"
-        >
-          <Plus className="w-4 h-4" />
-          Iniciar cotización
         </button>
       </div>
     </article>
