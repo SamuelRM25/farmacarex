@@ -1,317 +1,60 @@
-@import "tailwindcss";
-
-/* ===================================
-   FARMACAREX DESIGN SYSTEM V2
-   Premium Light & Dark Modes
-   =================================== */
+@import 'tailwindcss';
 
 @theme {
-  /* Typography */
-  --font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-
-  /* Design Tokens mapped to standard Tailwind colors for utility generation */
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-light: var(--primary-light);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
-
-  --color-bg-app: var(--bg-app);
-  --color-bg-surface: var(--bg-surface);
-  --color-bg-surface-secondary: var(--bg-surface-secondary);
-  --color-bg-hover: var(--bg-hover);
-
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-tertiary: var(--text-tertiary);
-  --color-text-inverse: var(--text-inverse);
-
-  --color-border-light: var(--border-light);
-  --color-border-medium: var(--border-medium);
-  --color-border-dark: var(--border-dark);
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
-
-  /* Glass Effects */
-  --color-glass-bg: var(--glass-bg);
-  --color-glass-border: var(--glass-border);
-  --color-glass-shadow: var(--glass-shadow);
+  --color-farma-red: #e63946;
+  --color-farma-red-dark: #c12936;
+  --color-farma-blue: #1e4d8b;
+  --color-farma-blue-dark: #163a6b;
+  --color-farma-blue-light: #2a5fa3;
 }
-
-:root {
-  --primary: #4F46E5;
-  --primary-hover: #4338CA;
-  --primary-light: #EEF2FF;
-  --secondary: #14B8A6;
-  --accent: #F59E0B;
-
-  --bg-app: #FAFAFA;
-  --bg-surface: #FFFFFF;
-  --bg-surface-secondary: #F8FAFC;
-  --bg-hover: #F1F5F9;
-
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-tertiary: #94A3B8;
-  --text-inverse: #FFFFFF;
-
-  --border-light: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --border-dark: #94A3B8;
-
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
-}
-
-.dark {
-  --primary: #818CF8;
-  --primary-hover: #6366F1;
-  --primary-light: #312E81;
-  --secondary: #2DD4BF;
-  --accent: #FBBF24;
-
-  --bg-app: #0A0E1A;
-  --bg-surface: #0F172A;
-  --bg-surface-secondary: #1E293B;
-  --bg-hover: #334155;
-
-  --text-primary: #F1F5F9;
-  --text-secondary: #CBD5E1;
-  --text-tertiary: #64748B;
-  --text-inverse: #0F172A;
-
-  --border-light: rgba(255, 255, 255, 0.05);
-  --border-medium: rgba(255, 255, 255, 0.1);
-  --border-dark: rgba(255, 255, 255, 0.2);
-
-  --glass-bg: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-/* ===================================
-   BASE STYLES
-   =================================== */
 
 * {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: var(--font-family);
-  background-color: var(--bg-app);
-  color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: #f8fafc;
+  color: #1e293b;
 }
 
-/* ===================================
-   GLASSMORPHISM COMPONENTS
-   =================================== */
-
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+button {
+  font-family: inherit;
 }
 
-.glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-lg);
-  transition: all 0.3s ease;
+input, textarea, select {
+  font-family: inherit;
 }
 
-.glass-card:hover {
-  box-shadow: var(--shadow-xl);
-  transform: translateY(-2px);
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
 }
 
-/* Light Mode Enhancements */
-@media (prefers-color-scheme: light) {
-  .glass-card {
-    background: rgba(255, 255, 255, 0.95);
-  }
-}
-
-/* Dark Mode Enhancements */
-.dark .glass-card {
-  background: rgba(15, 23, 42, 0.8);
-  border-color: var(--border-medium);
-}
-
-.dark .glass-card:hover {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: var(--border-dark);
-}
-
-/* ===================================
-   PREMIUM GRADIENTS
-   =================================== */
-
-.gradient-primary {
-  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-}
-
-.gradient-secondary {
-  background: linear-gradient(135deg, #14B8A6 0%, #0EA5E9 100%);
-}
-
-.gradient-accent {
-  background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
-}
-
-.dark .gradient-primary {
-  background: linear-gradient(135deg, #818CF8 0%, #A855F7 100%);
-}
-
-.dark .gradient-secondary {
-  background: linear-gradient(135deg, #2DD4BF 0%, #22D3EE 100%);
-}
-
-/* ===================================
-   ANIMATIONS
-   =================================== */
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-.animate-slide-up {
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ===================================
-   SCROLLBAR STYLING
-   =================================== */
-
-.scrollbar-elegant::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.scrollbar-elegant::-webkit-scrollbar-track {
+.scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.scrollbar-elegant::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
-  border-radius: 8px;
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(30, 77, 139, 0.2);
+  border-radius: 9999px;
 }
 
-.scrollbar-elegant::-webkit-scrollbar-thumb:hover {
-  background: var(--border-dark);
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 77, 139, 0.4);
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--bg-surface-secondary);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary);
-}
-
-/* ===================================
-   UTILITY CLASSES
-   =================================== */
-
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.text-balance {
-  text-wrap: balance;
-}
-
-/* Premium Shadow Utilities */
-.shadow-premium {
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.03),
-    0 1px 1px rgba(0, 0, 0, 0.02),
-    0 4px 8px rgba(0, 0, 0, 0.04),
-    0 16px 24px rgba(0, 0, 0, 0.06);
-}
-
-.dark .shadow-premium {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 8px 16px rgba(0, 0, 0, 0.4),
-    0 16px 32px rgba(0, 0, 0, 0.3);
-}
-
-/* Focus States */
-.focus-ring {
-  @apply outline-none focus:ring-2 focus:ring-offset-2;
-  --tw-ring-color: var(--color-primary);
-}
-
-.dark .focus-ring {
-  --tw-ring-offset-color: var(--bg-surface);
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
