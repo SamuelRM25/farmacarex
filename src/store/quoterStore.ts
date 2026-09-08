@@ -39,7 +39,7 @@ interface QuoterState {
   duplicarHistorial: (id: string) => void;
 }
 
-const initialCliente: ClienteInfo = { nombre: '', telefono: '', direccion: '' };
+const initialCliente: ClienteInfo = { nombre: '', telefono: '+502', direccion: '' };
 const initialMedico: MedicoInfo = { nombre: '', colegiado: '', especialidad: '' };
 
 const LEGACY_TIER_MAP: Record<string, PriceTier> = {

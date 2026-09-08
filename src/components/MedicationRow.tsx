@@ -1,8 +1,7 @@
 import type { Medication } from '../types';
 import { MARCAS, CATEGORIAS } from '../types';
-import { Pill, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useQuoterStore } from '../store/quoterStore';
-import { PRICES } from '../data/prices';
 
 interface Props {
   med: Medication;
@@ -15,20 +14,12 @@ export default function MedicationRow({ med, onOpenDetail }: Props) {
   const inCart = useQuoterStore((s) =>
     s.items.filter((i) => i.medId === med.id).reduce((acc, i) => acc + i.qty, 0)
   );
-  const defaultPrice = PRICES[med.id]?.medico;
-
-  const composicion =
-    med.formula && med.formula.length > 0
-      ? med.formula
-          .map((c) => (c.cantidad ? `${c.componente} (${c.cantidad})` : c.componente))
-          .join(' · ')
-      : med.nombreGenerico ?? '—';
 
   return (
     <button
       type="button"
       onClick={() => onOpenDetail(med)}
-      className="w-full text-left bg-white rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition px-4 py-3 flex items-center gap-3 group"
+      className="w-full text-left bg-white rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md active:scale-[0.998] transition-all px-4 py-3 flex items-center gap-3 group"
     >
       <div className="hidden sm:flex flex-col items-start gap-1 shrink-0 w-32">
         <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${brand.bg} ${brand.color}`}>
@@ -51,10 +42,9 @@ export default function MedicationRow({ med, onOpenDetail }: Props) {
         <h3 className="font-bold text-slate-900 text-sm leading-tight truncate">
           {med.nombreComercial}
         </h3>
-        <div className="flex items-start gap-1.5 mt-0.5">
-          <Pill className="w-3 h-3 text-slate-400 mt-0.5 shrink-0 hidden sm:block" />
-          <p className="text-xs text-slate-600 line-clamp-1">{composicion}</p>
-        </div>
+        {med.nombreGenerico && (
+          <p className="text-xs text-slate-500 mt-0.5 truncate">{med.nombreGenerico}</p>
+        )}
         <p className="text-[11px] text-slate-500 mt-0.5 italic">{med.presentacion}</p>
       </div>
 
@@ -64,13 +54,7 @@ export default function MedicationRow({ med, onOpenDetail }: Props) {
             {inCart} en cotiz.
           </span>
         )}
-        {defaultPrice !== undefined && defaultPrice > 0 && (
-          <div className="hidden lg:flex flex-col items-end">
-            <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 leading-tight">Médico</span>
-            <span className="text-xs font-extrabold text-slate-700">Q {defaultPrice.toFixed(2)}</span>
-          </div>
-        )}
-        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-700 transition" />
+        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-700 group-hover:translate-x-0.5 transition-all" />
       </div>
     </button>
   );

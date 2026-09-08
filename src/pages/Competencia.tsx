@@ -4,8 +4,40 @@ import { MEDICATIONS } from '../data/medications';
 import { MARCAS, CATEGORIAS } from '../types';
 import type { Medication } from '../types';
 import { googleScholarUrl, googleSearchUrl, searchCompetencia, type CompetenciaResult } from '../lib/competencia';
+import EmbeddedBrowserModal from '../components/EmbeddedBrowserModal';
 
 const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
+
+function bingPricesUrl(med?: Medication, queryOverride?: string): string {
+  const parts: string[] = [];
+  if (med?.principioActivo) {
+    parts.push(med.principioActivo);
+    if (med.presentacion) {
+      const presentacionKw = med.presentacion
+        .replace(/Caja \d+\s*/i, '')
+        .replace(/Frasco \d+\s*/i, '')
+        .replace(/Ampolla \d+\s*/i, '')
+        .trim();
+      if (presentacionKw) parts.push(presentacionKw);
+    }
+  } else if (queryOverride) {
+    parts.push(queryOverride);
+  }
+  parts.push('precio', 'Guatemala');
+  return `https://www.bing.com/search?q=${encodeURIComponent(parts.join(' '))}`;
+}
+
+function bingScholarUrl(query: string): string {
+  return `https://www.bing.com/search?q=${encodeURIComponent(`${query} papers research site:scholar.google.com`)}`;
+}
+
+function presentacionKw(med: Medication): string {
+  return med.presentacion
+    .replace(/Caja \d+\s*/i, '')
+    .replace(/Frasco \d+\s*/i, '')
+    .replace(/Ampolla \d+\s*/i, '')
+    .trim();
+}
 
 export default function Competencia() {
   const [queryInput, setQueryInput] = useState('');
@@ -13,6 +45,7 @@ export default function Competencia() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CompetenciaResult | null>(null);
+  const [browser, setBrowser] = useState<{ url: string; title: string } | null>(null);
 
   const selectedMed: Medication | undefined = useMemo(
     () => (medId ? MEDICATIONS.find((m) => m.id === medId) : undefined),
@@ -41,14 +74,13 @@ export default function Competencia() {
     }
   };
 
-  const handleSearch = async (override?: { query: string; medId?: string }) => {
-    const q = (override?.query ?? queryInput).trim();
-    const idToUse = override?.medId ?? medId;
+  const handleSearch = async () => {
+    const q = queryInput.trim();
     if (!q) {
       setError('Ingresá un principio activo o seleccioná un medicamento de la lista.');
       return;
     }
-    const med = idToUse ? MEDICATIONS.find((m) => m.id === idToUse) : undefined;
+    const med = medId ? MEDICATIONS.find((m) => m.id === medId) : undefined;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -63,20 +95,21 @@ export default function Competencia() {
     }
   };
 
-  // Si el query está vacío cuando cambia el medicamento, autocompletar (caso de selección por datalist).
-  // En general, handleSelectMed ya setea queryInput; esto es defensa para casos extremos.
+  const handlePricesInApp = () => {
+    const url = bingPricesUrl(selectedMed, queryInput.trim() || undefined);
+    setBrowser({ url, title: 'Precios en Bing' });
+  };
+
+  const handlePapersInApp = () => {
+    const q = queryInput.trim();
+    if (!q) return;
+    setBrowser({ url: bingScholarUrl(q), title: 'Papers en Bing' });
+  };
 
   const googleUrl = useMemo(() => {
     const q = queryInput.trim();
     if (!q) return null;
-    if (selectedMed) {
-      const presentacionKw = selectedMed.presentacion
-        .replace(/Caja \d+\s*/i, '')
-        .replace(/Frasco \d+\s*/i, '')
-        .replace(/Ampolla \d+\s*/i, '')
-        .trim();
-      return googleSearchUrl(q, presentacionKw);
-    }
+    if (selectedMed) return googleSearchUrl(q, presentacionKw(selectedMed));
     return googleSearchUrl(q);
   }, [queryInput, selectedMed]);
 
@@ -94,7 +127,7 @@ export default function Competencia() {
           </h1>
           <p className="text-sm text-slate-500 mt-1 max-w-2xl">
             Buscá información y precios de la competencia para el principio activo de cualquier producto FarmaCarex.
-            Consultamos <strong>DuckDuckGo</strong> (info) y armamos un link directo a <strong>Google</strong> (precios Guatemala).
+            Consultamos <strong>DuckDuckGo</strong> (info), <strong>Wikipedia</strong>, y abrimos <strong>Bing</strong> (precios/papers) sin salir de la app.
           </p>
         </div>
 
@@ -104,7 +137,7 @@ export default function Competencia() {
               1 · Seleccioná un producto FarmaCarex (opcional)
             </label>
             <input
-              list="med-list"
+              list="comp-med-list"
               type="text"
               placeholder="Tusicarex, E-Mox, Alphavit…"
               value={
@@ -123,9 +156,9 @@ export default function Competencia() {
                 const match = medOptions.find((o) => o.label === value);
                 if (match) handleSelectMed(match.id);
               }}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition"
             />
-            <datalist id="med-list">
+            <datalist id="comp-med-list">
               {medOptions.map((o) => (
                 <option key={o.id} value={o.label} />
               ))}
@@ -167,13 +200,13 @@ export default function Competencia() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSearch();
                 }}
-                className="flex-1 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                className="flex-1 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition"
               />
               <button
                 type="button"
                 onClick={() => handleSearch()}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 text-white font-bold rounded-lg transition shadow-sm whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 text-white font-bold rounded-lg transition shadow-sm whitespace-nowrap active:scale-[0.98]"
               >
                 {loading ? (
                   <>
@@ -197,34 +230,58 @@ export default function Competencia() {
             </div>
           )}
 
-          {googleUrl && scholarUrl && (
+          {queryInput.trim() && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <a
-                href={googleUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 font-semibold rounded-lg transition"
+              <button
+                type="button"
+                onClick={handlePricesInApp}
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg transition shadow-sm active:scale-[0.98]"
+                title="Abrir Bing dentro de FarmaCarex"
               >
-                <Globe className="w-4 h-4 text-blue-700" />
-                Buscar precios en Google Guatemala
-                <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-              </a>
-              <a
-                href={scholarUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 font-semibold rounded-lg transition"
+                <Globe className="w-4 h-4" />
+                Ver precios (in-app)
+              </button>
+              <button
+                type="button"
+                onClick={handlePapersInApp}
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-700 hover:bg-indigo-800 text-white font-bold rounded-lg transition shadow-sm active:scale-[0.98]"
+                title="Abrir Bing Scholar dentro de FarmaCarex"
               >
-                <GraduationCap className="w-4 h-4 text-indigo-700" />
-                Buscar estudios en Google Scholar
-                <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-              </a>
+                <GraduationCap className="w-4 h-4" />
+                Ver papers (in-app)
+              </button>
+              {googleUrl && (
+                <a
+                  href={googleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 font-semibold rounded-lg transition active:scale-[0.98]"
+                >
+                  <Globe className="w-4 h-4 text-blue-700" />
+                  Abrir Google en nueva pestaña
+                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                </a>
+              )}
+              {scholarUrl && (
+                <a
+                  href={scholarUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 font-semibold rounded-lg transition active:scale-[0.98]"
+                >
+                  <GraduationCap className="w-4 h-4 text-indigo-700" />
+                  Abrir Google Scholar en nueva pestaña
+                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                </a>
+              )}
             </div>
           )}
 
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            ⓘ La información proviene de DuckDuckGo (Wikipedia, Open data, fuentes abiertas) y de Google. Es
-            orientativa; verificá siempre con tu agente de ventas o en la ficha técnica antes de cotizar.
+            ⓘ La información de la izquierda proviene de DuckDuckGo y Wikipedia. Los botones
+            <strong> in-app </strong>abren Bing dentro de FarmaCarex; los enlaces
+            <strong> nueva pestaña </strong>abren Google/Scholar en otra pestaña del navegador.
+            Verificá siempre con tu agente de ventas antes de cotizar.
           </p>
         </div>
       </div>
@@ -237,7 +294,7 @@ export default function Competencia() {
       )}
 
       {!loading && result && (
-        <SearchResults result={result} onRetry={handleSearch} queryInput={queryInput} />
+        <SearchResults result={result} onRetry={handleSearch} />
       )}
 
       {!loading && !result && !error && (
@@ -246,17 +303,24 @@ export default function Competencia() {
           <h2 className="text-base font-bold text-slate-700">¿Cómo funciona?</h2>
           <ol className="text-sm text-slate-500 mt-3 space-y-2 max-w-md mx-auto text-left">
             <li>
-              <span className="font-semibold text-slate-700">1.</span> Elegí un producto FarmaCarex o escribí el principio activo que te interese.
+              <span className="font-semibold text-slate-700">1.</span> Elegí un producto FarmaCarex o escribí el principio activo.
             </li>
             <li>
-              <span className="font-semibold text-slate-700">2.</span> Tocá <strong>Buscar</strong> para consultar DuckDuckGo.
+              <span className="font-semibold text-slate-700">2.</span> Tocá <strong>Buscar</strong> para consultar DuckDuckGo + Wikipedia.
             </li>
             <li>
-              <span className="font-semibold text-slate-700">3.</span> Usá los botones de Google para abrir búsquedas de precios o papers académicos.
+              <span className="font-semibold text-slate-700">3.</span> Usá <strong>Ver precios (in-app)</strong> o <strong>Ver papers (in-app)</strong> para abrir Bing sin salir de la app.
             </li>
           </ol>
         </div>
       )}
+
+      <EmbeddedBrowserModal
+        url={browser?.url ?? null}
+        title={browser?.title ?? ''}
+        open={Boolean(browser)}
+        onClose={() => setBrowser(null)}
+      />
     </div>
   );
 }
@@ -279,11 +343,9 @@ function SourceBadge({ source }: { source: CompetenciaResult['source'] }) {
 function SearchResults({
   result,
   onRetry,
-  queryInput,
 }: {
   result: CompetenciaResult;
-  onRetry: (override: { query: string; medId?: string }) => void;
-  queryInput: string;
+  onRetry: () => void;
 }) {
   const empty = !result.abstract && result.topics.length === 0;
 
@@ -301,7 +363,7 @@ function SearchResults({
         </div>
         <button
           type="button"
-          onClick={() => onRetry({ query: queryInput })}
+          onClick={() => onRetry()}
           className="text-xs text-slate-500 hover:text-blue-700 font-semibold flex items-center gap-1"
         >
           <Search className="w-3.5 h-3.5" />
@@ -314,7 +376,7 @@ function SearchResults({
           <BookOpen className="w-8 h-8 mx-auto text-slate-300 mb-2" />
           <p className="text-sm text-slate-700 font-semibold">Sin resultados en DuckDuckGo</p>
           <p className="text-xs text-slate-500 mt-1">
-            Probá con otro término o usá los botones de Google arriba para buscar precios o papers.
+            Probá con otro término o usá los botones <strong>in-app</strong> arriba para abrir Bing.
           </p>
         </div>
       ) : (

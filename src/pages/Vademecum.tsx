@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Pill, X, LayoutGrid, List, Plus } from 'lucide-react';
+import { Search, Pill, X, LayoutGrid, List, BookOpen, ExternalLink } from 'lucide-react';
 import { MEDICATIONS } from '../data/medications';
-import type { Categoria, Marca, Medication, PriceTier } from '../types';
+import type { Categoria, Marca, Medication } from '../types';
 import { CATEGORIAS, MARCAS, MARCA_ORDER } from '../types';
 import MedicationCard from '../components/MedicationCard';
 import MedicationRow from '../components/MedicationRow';
-import PriceTierToggle from '../components/PriceTierToggle';
-import { useQuoterStore } from '../store/quoterStore';
-import { PRICES } from '../data/prices';
-import { tiersFor } from '../lib/pricing';
-import { formatGTQ } from '../lib/currency';
+import CompositionList from '../components/CompositionList';
+import EmbeddedBrowserModal from '../components/EmbeddedBrowserModal';
+import { vademecumSearchUrl, hasVademecumQuery } from '../lib/vademecum';
 
 const CATEGORIA_ORDER: Categoria[] = [
   'gripe-tos',
@@ -38,7 +35,6 @@ function compareMeds(a: Medication, b: Medication): number {
 const VIEW_MODE_KEY = 'farmacarex:vademecum:view';
 
 export default function Vademecum() {
-  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [marca, setMarca] = useState<Marca | 'todas'>('todas');
   const [cat, setCat] = useState<Categoria | 'todas'>('todas');
@@ -48,10 +44,7 @@ export default function Vademecum() {
     return stored === 'list' ? 'list' : 'grid';
   });
   const [detailMed, setDetailMed] = useState<Medication | null>(null);
-  const [pickerMed, setPickerMed] = useState<Medication | null>(null);
-  const [pickerTier, setPickerTier] = useState<PriceTier>('medico');
-
-  const addItem = useQuoterStore((s) => s.addItem);
+  const [vademecumMed, setVademecumMed] = useState<Medication | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -113,16 +106,7 @@ export default function Vademecum() {
 
   const openDetail = (m: Medication) => setDetailMed(m);
 
-  const handleConfirmPicker = () => {
-    if (!pickerMed) return;
-    addItem(pickerMed.id, pickerTier);
-    const chosen = pickerMed;
-    const tier = pickerTier;
-    setPickerMed(null);
-    window.setTimeout(() => {
-      navigate(`/cotizador?focus=${chosen.id}&tier=${tier}`);
-    }, 100);
-  };
+  const handleCloseDetail = () => setDetailMed(null);
 
   return (
     <div className="space-y-6">
@@ -147,7 +131,7 @@ export default function Vademecum() {
               role="radio"
               aria-checked={viewMode === 'grid'}
               onClick={() => setViewMode('grid')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.97] ${
                 viewMode === 'grid'
                   ? 'bg-blue-700 text-white shadow'
                   : 'text-slate-500 hover:text-slate-800'
@@ -161,7 +145,7 @@ export default function Vademecum() {
               role="radio"
               aria-checked={viewMode === 'list'}
               onClick={() => setViewMode('list')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.97] ${
                 viewMode === 'list'
                   ? 'bg-blue-700 text-white shadow'
                   : 'text-slate-500 hover:text-slate-800'
@@ -180,7 +164,7 @@ export default function Vademecum() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nombre, genérico, principio activo..."
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition"
           />
         </div>
 
@@ -189,7 +173,7 @@ export default function Vademecum() {
             <button
               type="button"
               onClick={() => setMarca('todas')}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all active:scale-[0.97] ${
                 marca === 'todas'
                   ? 'bg-slate-800 text-white border-slate-800 shadow'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
@@ -206,7 +190,7 @@ export default function Vademecum() {
                   key={m}
                   type="button"
                   onClick={() => setMarca(m)}
-                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all active:scale-[0.97] ${
                     isActive
                       ? `${meta.bg} ${meta.color} border-current shadow`
                       : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
@@ -227,7 +211,7 @@ export default function Vademecum() {
             <button
               type="button"
               onClick={() => setCat('todas')}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all active:scale-[0.97] ${
                 cat === 'todas'
                   ? 'bg-blue-700 text-white border-blue-700 shadow'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
@@ -245,7 +229,7 @@ export default function Vademecum() {
                   key={c}
                   type="button"
                   onClick={() => setCat(c)}
-                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all active:scale-[0.97] ${
                     isActive
                       ? 'bg-blue-700 text-white border-blue-700 shadow'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
@@ -261,7 +245,7 @@ export default function Vademecum() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="bg-white border border-dashed border-slate-200 rounded-xl p-12 text-center">
+        <div className="bg-white border border-dashed border-slate-200 rounded-xl p-12 text-center animate-fade-in">
           <Pill className="w-10 h-10 mx-auto text-slate-300 mb-3" />
           <p className="font-semibold text-slate-700">Sin resultados</p>
           <p className="text-sm text-slate-500 mt-1">
@@ -286,14 +270,26 @@ export default function Vademecum() {
                 </header>
                 {viewMode === 'grid' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {items.map((med) => (
-                      <MedicationCard key={med.id} med={med} onOpenDetail={openDetail} />
+                    {items.map((med, idx) => (
+                      <div
+                        key={med.id}
+                        style={{ animationDelay: `${Math.min(idx, 6) * 40}ms` }}
+                        className="animate-fade-in-up"
+                      >
+                        <MedicationCard med={med} onOpenDetail={openDetail} />
+                      </div>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {items.map((med) => (
-                      <MedicationRow key={med.id} med={med} onOpenDetail={openDetail} />
+                    {items.map((med, idx) => (
+                      <div
+                        key={med.id}
+                        style={{ animationDelay: `${Math.min(idx, 6) * 30}ms` }}
+                        className="animate-fade-in-up"
+                      >
+                        <MedicationRow med={med} onOpenDetail={openDetail} />
+                      </div>
                     ))}
                   </div>
                 )}
@@ -303,14 +299,26 @@ export default function Vademecum() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((med) => (
-            <MedicationCard key={med.id} med={med} onOpenDetail={openDetail} />
+          {filtered.map((med, idx) => (
+            <div
+              key={med.id}
+              style={{ animationDelay: `${Math.min(idx, 6) * 40}ms` }}
+              className="animate-fade-in-up"
+            >
+              <MedicationCard med={med} onOpenDetail={openDetail} />
+            </div>
           ))}
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map((med) => (
-            <MedicationRow key={med.id} med={med} onOpenDetail={openDetail} />
+          {filtered.map((med, idx) => (
+            <div
+              key={med.id}
+              style={{ animationDelay: `${Math.min(idx, 6) * 30}ms` }}
+              className="animate-fade-in-up"
+            >
+              <MedicationRow med={med} onOpenDetail={openDetail} />
+            </div>
           ))}
         </div>
       )}
@@ -318,23 +326,20 @@ export default function Vademecum() {
       {detailMed && (
         <ModalDetail
           med={detailMed}
-          onClose={() => setDetailMed(null)}
-          onOpenPicker={(med) => {
-            setPickerMed(med);
+          onClose={handleCloseDetail}
+          onOpenVademecum={(med) => {
+            setVademecumMed(med);
             setDetailMed(null);
           }}
         />
       )}
 
-      {pickerMed && (
-        <ModalPicker
-          med={pickerMed}
-          tier={pickerTier}
-          setTier={setPickerTier}
-          onConfirm={handleConfirmPicker}
-          onClose={() => setPickerMed(null)}
-        />
-      )}
+      <EmbeddedBrowserModal
+        url={vademecumMed ? vademecumSearchUrl(vademecumMed) : null}
+        title="Vademécum.es"
+        open={Boolean(vademecumMed)}
+        onClose={() => setVademecumMed(null)}
+      />
     </div>
   );
 }
@@ -342,15 +347,26 @@ export default function Vademecum() {
 function ModalDetail({
   med,
   onClose,
-  onOpenPicker,
+  onOpenVademecum,
 }: {
   med: Medication;
   onClose: () => void;
-  onOpenPicker: (med: Medication) => void;
+  onOpenVademecum: (med: Medication) => void;
 }) {
   const cat = CATEGORIAS[med.categoria];
   const brand = MARCAS[med.marca];
-  const tierCount = tiersFor(PRICES[med.id]).length;
+  const hasFicha = Boolean(
+    (med.formula && med.formula.length > 0) ||
+      med.indicaciones ||
+      med.mecanismoAccion ||
+      med.contraindicaciones ||
+      med.efectosSecundarios ||
+      med.posologia ||
+      med.posologiaPorPeso ||
+      med.seguridad ||
+      (med.comparativa && med.comparativa.length > 0)
+  );
+
   return (
     <div
       role="dialog"
@@ -359,11 +375,11 @@ function ModalDetail({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-modal-pop"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex items-start justify-between gap-3 z-10">
-          <div>
+        <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-100 p-5 flex items-start justify-between gap-3 z-10">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 mb-2">
               <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${brand.bg} ${brand.color}`}>
                 {brand.short}
@@ -379,37 +395,38 @@ function ModalDetail({
               <p className="text-sm text-slate-600 mt-0.5">{med.nombreGenerico}</p>
             )}
             <p className="text-sm text-slate-700 mt-1">{med.presentacion}</p>
-            {tierCount > 0 && (
-              <p className="text-xs text-blue-700 mt-2 font-semibold">
-                Disponible en {tierCount} nivel{tierCount === 1 ? '' : 'es'} de precio · elegí el nivel al agregarlo al cotizador.
-              </p>
-            )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {hasVademecumQuery(med) && (
+              <button
+                type="button"
+                onClick={() => onOpenVademecum(med)}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition active:scale-[0.97]"
+                title="Ver información adicional en vademecum.es (in-app)"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Ver en vademecum.es
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition"
+              aria-label="Cerrar"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div className="p-5 space-y-5">
           {med.formula && med.formula.length > 0 && (
-            <section className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+            <section>
               <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
                 Fórmula / Composición
               </h3>
-              <ul className="space-y-1">
-                {med.formula.map((c, i) => (
-                  <li key={i} className="flex justify-between gap-4 text-sm">
-                    <span className="text-slate-700">{c.componente}</span>
-                    {c.cantidad && (
-                      <span className="font-semibold text-slate-900 text-right">{c.cantidad}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <CompositionList med={med} variant="detailed" />
             </section>
           )}
 
@@ -506,96 +523,26 @@ function ModalDetail({
             </section>
           )}
 
-          {!med.indicaciones && !med.formula && !med.mecanismoAccion && (
+          {!hasFicha && (
             <p className="text-sm text-slate-500 italic">
               Sin ficha técnica detallada. Consultá con tu agente de ventas para más información.
             </p>
           )}
         </div>
 
-        {tierCount > 0 && (
-          <div className="sticky bottom-0 bg-white border-t border-slate-100 px-5 py-4">
+        {hasVademecumQuery(med) && (
+          <div className="sticky bottom-0 bg-white border-t border-slate-100 px-5 py-3 sm:hidden">
             <button
               type="button"
-              onClick={() => onOpenPicker(med)}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 font-bold rounded-lg transition shadow-sm bg-red-500 hover:bg-red-600 text-white"
+              onClick={() => onOpenVademecum(med)}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition active:scale-[0.98]"
             >
-              <Plus className="w-5 h-5" />
-              Agregar al cotizador
+              <BookOpen className="w-4 h-4" />
+              Ver en vademecum.es
+              <ExternalLink className="w-3.5 h-3.5 opacity-60" />
             </button>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function ModalPicker({
-  med,
-  tier,
-  setTier,
-  onConfirm,
-  onClose,
-}: {
-  med: Medication;
-  tier: PriceTier;
-  setTier: (t: PriceTier) => void;
-  onConfirm: () => void;
-  onClose: () => void;
-}) {
-  const tiers = tiersFor(PRICES[med.id]);
-  const availableTier = tiers.find((t) => t.key === tier);
-  useEffect(() => {
-    if (!availableTier && tiers.length > 0) {
-      setTier(tiers[0].key);
-    }
-  }, [availableTier, tiers, setTier]);
-
-  const unit = availableTier?.price ?? tiers[0]?.price ?? 0;
-  const activeTier = availableTier?.key ?? tiers[0]?.key ?? tier;
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-5 border-b border-slate-100">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-bold text-slate-900">{med.nombreComercial}</h3>
-              <p className="text-sm text-slate-500 mt-0.5">{med.presentacion}</p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <PriceTierToggle tier={activeTier} onChange={setTier} tiers={tiers} />
-          <p className="text-xs text-slate-500 text-center">
-            Podés cambiar el nivel más tarde en el cotizador.
-          </p>
-
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={unit <= 0}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white font-bold rounded-lg transition shadow-sm"
-          >
-            Agregar al cotizador · {formatGTQ(unit)} c/u
-          </button>
-        </div>
       </div>
     </div>
   );

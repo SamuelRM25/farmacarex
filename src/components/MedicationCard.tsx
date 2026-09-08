@@ -1,7 +1,8 @@
 import type { Medication } from '../types';
 import { MARCAS, CATEGORIAS } from '../types';
-import { Info, Pill } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { useQuoterStore } from '../store/quoterStore';
+import CompositionList from './CompositionList';
 
 interface Props {
   med: Medication;
@@ -15,8 +16,11 @@ export default function MedicationCard({ med, onOpenDetail }: Props) {
     s.items.filter((i) => i.medId === med.id).reduce((acc, i) => acc + i.qty, 0)
   );
 
+  const hasComposition =
+    (med.formula && med.formula.length > 0) || med.nombreGenerico;
+
   return (
-    <article className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden">
+    <article className="group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden">
       <div className="px-4 pt-4 pb-3 border-b border-slate-100">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -45,17 +49,11 @@ export default function MedicationCard({ med, onOpenDetail }: Props) {
       </div>
 
       <div className="px-4 py-3 bg-slate-50/50 flex-1">
-        <div className="flex items-start gap-2">
-          <Pill className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
-          <div className="text-xs text-slate-700 leading-snug">
-            <span className="font-semibold">Composición:</span>{' '}
-            {med.formula && med.formula.length > 0
-              ? med.formula
-                  .map((c) => (c.cantidad ? `${c.componente} (${c.cantidad})` : c.componente))
-                  .join(' · ')
-              : med.nombreGenerico ?? '—'}
-          </div>
-        </div>
+        {hasComposition ? (
+          <CompositionList med={med} variant="compact" />
+        ) : (
+          <p className="text-xs italic text-slate-400">Sin composición detallada.</p>
+        )}
         <p className="text-[11px] text-slate-500 mt-2 italic">{med.presentacion}</p>
       </div>
 
@@ -63,7 +61,7 @@ export default function MedicationCard({ med, onOpenDetail }: Props) {
         <button
           type="button"
           onClick={() => onOpenDetail(med)}
-          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all"
         >
           <Info className="w-4 h-4" />
           Ficha técnica
