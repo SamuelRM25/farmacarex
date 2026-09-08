@@ -1,9 +1,10 @@
 services:
   - type: web
     name: farmacarex
-    env: static
+    runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
+    notFoundPage: /index.html
     routes:
       - type: rewrite
         source: /*

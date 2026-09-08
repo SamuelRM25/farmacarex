@@ -13,12 +13,8 @@ const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true })
 
 export default function ProductSearch() {
   const addItem = useQuoterStore((s) => s.addItem);
-  const cartById = useQuoterStore((s) =>
-    s.items.reduce<Record<string, number>>((acc, i) => {
-      acc[i.medId] = (acc[i.medId] ?? 0) + i.qty;
-      return acc;
-    }, {})
-  );
+  // Suscripción segura a `items` (referencia estable) — luego derivamos el mapa.
+  const items = useQuoterStore((s) => s.items);
 
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -26,6 +22,14 @@ export default function ProductSearch() {
   const [justAdded, setJustAdded] = useState<Record<string, boolean>>({});
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const cartById = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const i of items) {
+      map[i.medId] = (map[i.medId] ?? 0) + i.qty;
+    }
+    return map;
+  }, [items]);
 
   const medOptions = useMemo(
     () =>
