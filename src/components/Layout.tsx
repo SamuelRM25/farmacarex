@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { Pill, ShoppingCart, History, Brain } from 'lucide-react';
+import { Pill, ShoppingCart, History, Brain, Swords } from 'lucide-react';
 import { useQuoterStore } from '../store/quoterStore';
 
 export default function Layout() {
@@ -70,6 +70,19 @@ export default function Layout() {
               <span className="hidden sm:inline">Aprendizaje</span>
             </NavLink>
             <NavLink
+              to="/competencia"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`
+              }
+            >
+              <Swords className="w-4 h-4" />
+              <span className="hidden sm:inline">Competencia</span>
+            </NavLink>
+            <NavLink
               to="/historial"
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
@@ -100,7 +113,7 @@ export default function Layout() {
           </div>
           <div className="flex items-center gap-3">
             <span>Tel: (+502) 2433-5641</span>
-            <span className="opacity-70">Cotizador v1.1</span>
+            <span className="opacity-70">Cotizador v1.2</span>
           </div>
         </div>
       </footer>
