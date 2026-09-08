@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { Pill, FileText, ShoppingCart, History } from 'lucide-react';
+import { Pill, ShoppingCart, History, Brain } from 'lucide-react';
 import { useQuoterStore } from '../store/quoterStore';
 
 export default function Layout() {
@@ -57,6 +57,19 @@ export default function Layout() {
               )}
             </NavLink>
             <NavLink
+              to="/aprendizaje"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`
+              }
+            >
+              <Brain className="w-4 h-4" />
+              <span className="hidden sm:inline">Aprendizaje</span>
+            </NavLink>
+            <NavLink
               to="/historial"
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
@@ -80,14 +93,14 @@ export default function Layout() {
       <footer className="bg-blue-800 text-blue-100 text-xs sm:text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
+            <Pill className="w-4 h-4" />
             <span>
               Droguería FarmaCarex, S.A. · 2 av. 11-30 Col. San Francisco II, zona 6 de Mixco, Guatemala
             </span>
           </div>
           <div className="flex items-center gap-3">
             <span>Tel: (+502) 2433-5641</span>
-            <span className="opacity-70">Cotizador v1</span>
+            <span className="opacity-70">Cotizador v1.1</span>
           </div>
         </div>
       </footer>
