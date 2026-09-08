@@ -1,6 +1,7 @@
 import type { QuoteItem, ClienteInfo, MedicoInfo } from '../types';
 import { MEDICATION_BY_ID } from '../data/medications';
 import { PRICES } from '../data/prices';
+import { tiersFor, unitPriceForTier } from './pricing';
 
 const PHONE_REGEX = /[^0-9+]/g;
 
@@ -9,15 +10,8 @@ function sanitizePhone(phone: string): string {
   return phone.replace(PHONE_REGEX, '');
 }
 
-function unitPrice(medId: string, tier: 'diez' | 'medico'): number {
-  const p = PRICES[medId];
-  if (!p) return 0;
-  if (tier === 'medico') return p.medico;
-  return p.diezOMas ?? p.medico;
-}
-
 export function computeTotal(items: QuoteItem[]): number {
-  return items.reduce((acc, it) => acc + unitPrice(it.medId, it.tier) * it.qty, 0);
+  return items.reduce((acc, it) => acc + unitPriceForTier(PRICES[it.medId], it.tier) * it.qty, 0);
 }
 
 function qty(n: number): string {
@@ -44,10 +38,13 @@ export function buildWhatsappText(opts: {
 
   opts.items.forEach((it) => {
     const med = MEDICATION_BY_ID[it.medId];
-    const unit = unitPrice(it.medId, it.tier);
+    const tiers = tiersFor(PRICES[it.medId]);
+    const tier = tiers.find((t) => t.key === it.tier) ?? tiers[0];
+    const unit = unitPriceForTier(PRICES[it.medId], it.tier);
     const subtotal = unit * it.qty;
     const name = med ? med.nombreComercial : it.medId;
-    lines.push(`• ${qty(it.qty)} × ${name} — ${money(subtotal)}`);
+    const tierLabel = tier ? tier.shortLabel : '—';
+    lines.push(`• ${qty(it.qty)} × ${name} (${tierLabel}) — ${money(subtotal)}`);
   });
 
   lines.push('');

@@ -1,8 +1,16 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { QuoteItem, ClienteInfo, MedicoInfo, SavedQuote, PriceTier } from '../types';
+import type {
+  QuoteItem,
+  ClienteInfo,
+  MedicoInfo,
+  SavedQuote,
+  PriceTier,
+} from '../types';
 import { todayISO } from '../lib/currency';
-import { computeTotal } from '../lib/whatsapp';
+import { MEDICATION_BY_ID } from '../data/medications';
+import { PRICES } from '../data/prices';
+import { tiersFor, unitPriceForTier } from '../lib/pricing';
 
 interface QuoterState {
   cliente: ClienteInfo;
@@ -34,6 +42,42 @@ interface QuoterState {
 const initialCliente: ClienteInfo = { nombre: '', telefono: '', direccion: '' };
 const initialMedico: MedicoInfo = { nombre: '', colegiado: '', especialidad: '' };
 
+const LEGACY_TIER_MAP: Record<string, PriceTier> = {
+  diez: 'diezOMas',
+  medico: 'medico',
+  venta: 'medico',
+  diezOMas: 'diezOMas',
+  tresANueve: 'tresANueve',
+  volumen: 'volumen',
+};
+
+function migrateTier(t: unknown): PriceTier {
+  if (typeof t === 'string' && LEGACY_TIER_MAP[t]) return LEGACY_TIER_MAP[t] as PriceTier;
+  return 'medico';
+}
+
+function migrateQuoteItem(item: Partial<QuoteItem>): QuoteItem {
+  const medId = typeof item.medId === 'string' ? item.medId : '';
+  const qty = Math.max(1, Number(item.qty ?? 1) || 1);
+  return { medId, qty, tier: migrateTier(item.tier) };
+}
+
+function migrateHistorial(items: Partial<SavedQuote>[]): SavedQuote[] {
+  return items.map((q) => ({
+    id: typeof q.id === 'string' ? q.id : `q_legacy_${Math.random().toString(36).slice(2, 10)}`,
+    fecha: typeof q.fecha === 'string' ? q.fecha : todayISO(),
+    cliente: q.cliente ?? { nombre: '', telefono: '', direccion: '' },
+    medico: q.medico ?? { nombre: '', colegiado: '', especialidad: '' },
+    notas: typeof q.notas === 'string' ? q.notas : '',
+    total: Number(q.total ?? 0),
+    items: Array.isArray(q.items) ? q.items.map(migrateQuoteItem) : [],
+  }));
+}
+
+function computeTotal(items: QuoteItem[]): number {
+  return items.reduce((acc, it) => acc + unitPriceForTier(PRICES[it.medId], it.tier) * it.qty, 0);
+}
+
 export const useQuoterStore = create<QuoterState>()(
   persist(
     (set, get) => ({
@@ -61,9 +105,7 @@ export const useQuoterStore = create<QuoterState>()(
               ),
             };
           }
-          return {
-            items: [...s.items, { medId, tier, qty }],
-          };
+          return { items: [...s.items, { medId, tier, qty }] };
         }),
 
       removeItem: (medId) =>
@@ -81,7 +123,6 @@ export const useQuoterStore = create<QuoterState>()(
           const current = s.items.find((i) => i.medId === medId);
           if (!current) return s;
           if (current.tier === tier) return s;
-          // If switching tier creates a duplicate with another item, merge qty
           const otherWithSameTier = s.items.find(
             (i) => i.medId === medId && i.tier === tier && i !== current
           );
@@ -90,16 +131,12 @@ export const useQuoterStore = create<QuoterState>()(
               items: s.items
                 .filter((i) => i !== current)
                 .map((i) =>
-                  i === otherWithSameTier
-                    ? { ...i, qty: i.qty + current.qty }
-                    : i
+                  i === otherWithSameTier ? { ...i, qty: i.qty + current.qty } : i
                 ),
             };
           }
           return {
-            items: s.items.map((i) =>
-              i.medId === medId ? { ...i, tier } : i
-            ),
+            items: s.items.map((i) => (i.medId === medId ? { ...i, tier } : i)),
           };
         }),
 
@@ -165,7 +202,23 @@ export const useQuoterStore = create<QuoterState>()(
     {
       name: 'farmacarex:state',
       storage: createJSONStorage(() => localStorage),
-      version: 1,
+      version: 2,
+      migrate: (persisted) => {
+        const state = persisted as Partial<QuoterState> | undefined;
+        const migrated: Partial<QuoterState> = {
+          cliente: state?.cliente ?? initialCliente,
+          medico: state?.medico ?? initialMedico,
+          items: Array.isArray(state?.items) ? state.items.map(migrateQuoteItem) : [],
+          notas: state?.notas ?? '',
+          fecha: state?.fecha ?? todayISO(),
+          historial: Array.isArray(state?.historial) ? migrateHistorial(state.historial) : [],
+        };
+        return migrated as unknown as QuoterState;
+      },
     }
   )
 );
+
+// Re-export helpers for components that don't want to import lib directly
+export { tiersFor, unitPriceForTier };
+export { MEDICATION_BY_ID };

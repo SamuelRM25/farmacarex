@@ -1,16 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Pill, X } from 'lucide-react';
 import { MEDICATIONS } from '../data/medications';
-import { PRICES } from '../data/prices';
-import type { Categoria, Medication, PriceTier } from '../types';
-import { CATEGORIAS } from '../types';
-import CategoryNav from '../components/CategoryNav';
+import type { Categoria, Marca, Medication, PriceTier } from '../types';
+import { CATEGORIAS, MARCAS, MARCA_ORDER } from '../types';
 import MedicationCard from '../components/MedicationCard';
 import PriceTierToggle from '../components/PriceTierToggle';
 import { useQuoterStore } from '../store/quoterStore';
+import { PRICES } from '../data/prices';
+import { tiersFor } from '../lib/pricing';
+import { formatGTQ } from '../lib/currency';
 
-const ORDER: Categoria[] = [
+const CATEGORIA_ORDER: Categoria[] = [
   'gripe-tos',
   'dolor',
   'antibiotico',
@@ -23,9 +24,18 @@ const ORDER: Categoria[] = [
   'dispositivo',
 ];
 
+const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
+
+function compareMeds(a: Medication, b: Medication): number {
+  const cmp = collator.compare(a.nombreComercial, b.nombreComercial);
+  if (cmp !== 0) return cmp;
+  return collator.compare(a.presentacion, b.presentacion);
+}
+
 export default function Vademecum() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [marca, setMarca] = useState<Marca | 'todas'>('todas');
   const [cat, setCat] = useState<Categoria | 'todas'>('todas');
   const [detailMed, setDetailMed] = useState<Medication | null>(null);
   const [pickerMed, setPickerMed] = useState<Medication | null>(null);
@@ -33,30 +43,60 @@ export default function Vademecum() {
 
   const addItem = useQuoterStore((s) => s.addItem);
 
+  const brandCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const m of MEDICATIONS) {
+      map[m.marca] = (map[m.marca] ?? 0) + 1;
+    }
+    return map;
+  }, []);
+
+  const catCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const m of MEDICATIONS) {
+      if (marca !== 'todas' && m.marca !== marca) continue;
+      map[m.categoria] = (map[m.categoria] ?? 0) + 1;
+    }
+    return map;
+  }, [marca]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return MEDICATIONS.filter((m) => {
+    const list = MEDICATIONS.filter((m) => {
+      if (marca !== 'todas' && m.marca !== marca) return false;
       if (cat !== 'todas' && m.categoria !== cat) return false;
       if (!q) return true;
       return (
         m.nombreComercial.toLowerCase().includes(q) ||
         (m.nombreGenerico ?? '').toLowerCase().includes(q) ||
+        (m.principioActivo ?? '').toLowerCase().includes(q) ||
         m.presentacion.toLowerCase().includes(q)
       );
     });
-  }, [search, cat]);
 
-  const counts = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const m of MEDICATIONS) {
-      map[m.categoria] = (map[m.categoria] ?? 0) + 1;
-    }
+    list.sort((a, b) => {
+      if (marca === 'todas' && cat === 'todas') {
+        const ma = MARCA_ORDER.indexOf(a.marca);
+        const mb = MARCA_ORDER.indexOf(b.marca);
+        if (ma !== mb) return ma - mb;
+      }
+      return compareMeds(a, b);
+    });
+    return list;
+  }, [search, marca, cat]);
+
+  const grouped = useMemo(() => {
+    if (marca !== 'todas' || cat !== 'todas') return null;
+    const map: Record<Marca, Medication[]> = {
+      ascavi: [],
+      medicbrand: [],
+      'farma-cerex': [],
+    };
+    for (const m of filtered) map[m.marca].push(m);
     return map;
-  }, []);
+  }, [filtered, marca, cat]);
 
-  const handleAddFromCatalog = (medId: string) => {
-    setPickerMed(MEDICATIONS.find((m) => m.id === medId) ?? null);
-  };
+  const openDetail = (m: Medication) => setDetailMed(m);
 
   const handleConfirmPicker = () => {
     if (!pickerMed) return;
@@ -64,7 +104,6 @@ export default function Vademecum() {
     const chosen = pickerMed;
     const tier = pickerTier;
     setPickerMed(null);
-    // Brief navigation hint
     navigate(`/cotizador?focus=${chosen.id}&tier=${tier}`);
   };
 
@@ -76,7 +115,7 @@ export default function Vademecum() {
             Vademécum
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Catálogo completo de productos FarmaCarex · {MEDICATIONS.length} productos
+            {MEDICATIONS.length} productos · {brandCounts['ascavi'] ?? 0} Ascavi · {brandCounts['medicbrand'] ?? 0} MedicBrand · {brandCounts['farma-cerex'] ?? 0} FarmaCarex
           </p>
         </div>
 
@@ -86,17 +125,85 @@ export default function Vademecum() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre, genérico o presentación..."
+            placeholder="Buscar por nombre, genérico, principio activo..."
             className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
           />
         </div>
 
-        <CategoryNav
-          categorias={ORDER}
-          counts={counts}
-          active={cat}
-          onSelect={setCat}
-        />
+        <div className="relative -mx-4 sm:-mx-6">
+          <div className="flex gap-2 overflow-x-auto px-4 sm:px-6 py-2 scrollbar-thin">
+            <button
+              type="button"
+              onClick={() => setMarca('todas')}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                marca === 'todas'
+                  ? 'bg-slate-800 text-white border-slate-800 shadow'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              Todas las marcas
+              <span className="ml-1.5 text-xs opacity-70">({MEDICATIONS.length})</span>
+            </button>
+            {MARCA_ORDER.map((m) => {
+              const meta = MARCAS[m];
+              const isActive = marca === m;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMarca(m)}
+                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                    isActive
+                      ? `${meta.bg} ${meta.color} border-current shadow`
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {meta.label}
+                  {brandCounts[m] !== undefined && (
+                    <span className="ml-1.5 text-xs opacity-70">({brandCounts[m]})</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="relative -mx-4 sm:-mx-6">
+          <div className="flex gap-2 overflow-x-auto px-4 sm:px-6 py-2 scrollbar-thin">
+            <button
+              type="button"
+              onClick={() => setCat('todas')}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                cat === 'todas'
+                  ? 'bg-blue-700 text-white border-blue-700 shadow'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              Todas
+            </button>
+            {CATEGORIA_ORDER.map((c) => {
+              const meta = CATEGORIAS[c];
+              const isActive = cat === c;
+              const count = catCounts[c] ?? 0;
+              if (count === 0 && cat !== c) return null;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCat(c)}
+                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                    isActive
+                      ? 'bg-blue-700 text-white border-blue-700 shadow'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {meta.label}
+                  <span className="ml-1.5 text-xs opacity-70">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -104,28 +211,50 @@ export default function Vademecum() {
           <Pill className="w-10 h-10 mx-auto text-slate-300 mb-3" />
           <p className="font-semibold text-slate-700">Sin resultados</p>
           <p className="text-sm text-slate-500 mt-1">
-            Probá con otro término o cambiá la categoría.
+            Probá con otro término o cambiá la marca / categoría.
           </p>
+        </div>
+      ) : grouped ? (
+        <div className="space-y-8">
+          {(['ascavi', 'medicbrand', 'farma-cerex'] as Marca[]).map((m) => {
+            const items = grouped[m];
+            if (items.length === 0) return null;
+            const meta = MARCAS[m];
+            return (
+              <section key={m}>
+                <header className="flex items-baseline justify-between mb-3 px-1">
+                  <h2 className={`text-base sm:text-lg font-extrabold tracking-tight ${meta.color}`}>
+                    {meta.label}
+                  </h2>
+                  <span className="text-xs text-slate-500">
+                    {items.length} producto{items.length === 1 ? '' : 's'}
+                  </span>
+                </header>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {items.map((med) => (
+                    <MedicationCard
+                      key={med.id}
+                      med={med}
+                      onOpenDetail={openDetail}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((med) => (
-            <MedicationCard
-              key={med.id}
-              med={med}
-              onAdd={handleAddFromCatalog}
-              onOpenDetail={setDetailMed}
-            />
+            <MedicationCard key={med.id} med={med} onOpenDetail={openDetail} />
           ))}
         </div>
       )}
 
-      {/* Detail modal */}
       {detailMed && (
         <ModalDetail med={detailMed} onClose={() => setDetailMed(null)} />
       )}
 
-      {/* Tier picker (add to cart) */}
       {pickerMed && (
         <ModalPicker
           med={pickerMed}
@@ -141,6 +270,8 @@ export default function Vademecum() {
 
 function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void }) {
   const cat = CATEGORIAS[med.categoria];
+  const brand = MARCAS[med.marca];
+  const tierCount = tiersFor(PRICES[med.id]).length;
   return (
     <div
       role="dialog"
@@ -154,16 +285,26 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
       >
         <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex items-start justify-between gap-3">
           <div>
-            <span className={`inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${cat.color}`}>
-              {cat.label}
-            </span>
-            <h2 className="text-xl font-extrabold text-slate-900 mt-2">
+            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+              <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${brand.bg} ${brand.color}`}>
+                {brand.short}
+              </span>
+              <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${cat.color}`}>
+                {cat.label}
+              </span>
+            </div>
+            <h2 className="text-xl font-extrabold text-slate-900 mt-1">
               {med.nombreComercial}
             </h2>
             {med.nombreGenerico && (
               <p className="text-sm text-slate-600 mt-0.5">{med.nombreGenerico}</p>
             )}
             <p className="text-sm text-slate-700 mt-1">{med.presentacion}</p>
+            {tierCount > 0 && (
+              <p className="text-xs text-blue-700 mt-2 font-semibold">
+                Disponible en {tierCount} nivel{tierCount === 1 ? '' : 'es'} de precio · agregá desde el cotizador para verlos.
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -175,11 +316,11 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
         </div>
 
         <div className="p-5 space-y-5">
-          <section className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
-              Fórmula / Composición
-            </h3>
-            {med.formula && med.formula.length > 0 ? (
+          {med.formula && med.formula.length > 0 && (
+            <section className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
+                Fórmula / Composición
+              </h3>
               <ul className="space-y-1">
                 {med.formula.map((c, i) => (
                   <li key={i} className="flex justify-between gap-4 text-sm">
@@ -190,10 +331,8 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="text-sm italic text-slate-500">No especificada.</p>
-            )}
-          </section>
+            </section>
+          )}
 
           {med.indicaciones && (
             <section>
@@ -201,6 +340,52 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
                 Indicaciones
               </h3>
               <p className="text-sm text-slate-700 leading-relaxed">{med.indicaciones}</p>
+            </section>
+          )}
+
+          {med.mecanismoAccion && (
+            <section>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
+                Mecanismo de acción
+              </h3>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                {med.mecanismoAccion}
+              </p>
+            </section>
+          )}
+
+          {med.contraindicaciones && (
+            <section>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-red-700 mb-2">
+                Contraindicaciones
+              </h3>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                {med.contraindicaciones}
+              </p>
+            </section>
+          )}
+
+          {med.efectosSecundarios && (
+            <section>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-2">
+                Efectos secundarios
+              </h3>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                {med.efectosSecundarios}
+              </p>
+            </section>
+          )}
+
+          {med.posologiaPorPeso && med.posologiaPorPeso.length > 0 && (
+            <section>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
+                Posología por peso
+              </h3>
+              <ul className="space-y-1 text-sm text-slate-700 list-disc list-inside">
+                {med.posologiaPorPeso.map((p, i) => (
+                  <li key={i}>{p}</li>
+                ))}
+              </ul>
             </section>
           )}
 
@@ -226,7 +411,23 @@ function ModalDetail({ med, onClose }: { med: Medication; onClose: () => void })
             </section>
           )}
 
-          {!med.indicaciones && !med.formula && (
+          {med.comparativa && med.comparativa.length > 0 && (
+            <section className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-2">
+                Comparativa
+              </h3>
+              <ul className="space-y-3 text-sm text-slate-700">
+                {med.comparativa.map((c, i) => (
+                  <li key={i}>
+                    <div className="font-semibold text-slate-900">{c.titulo}</div>
+                    <p className="leading-relaxed">{c.diferencia}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {!med.indicaciones && !med.formula && !med.mecanismoAccion && (
             <p className="text-sm text-slate-500 italic">
               Sin ficha técnica detallada. Consultá con tu agente de ventas para más información.
             </p>
@@ -250,8 +451,17 @@ function ModalPicker({
   onConfirm: () => void;
   onClose: () => void;
 }) {
-  const price = PRICES[med.id];
-  const unit = tier === 'medico' ? price?.medico ?? 0 : price?.diezOMas ?? price?.medico ?? 0;
+  const tiers = tiersFor(PRICES[med.id]);
+  const availableTier = tiers.find((t) => t.key === tier);
+  useEffect(() => {
+    if (!availableTier && tiers.length > 0) {
+      setTier(tiers[0].key);
+    }
+  }, [availableTier, tiers, setTier]);
+
+  const unit = availableTier?.price ?? tiers[0]?.price ?? 0;
+  const activeTier = availableTier?.key ?? tiers[0]?.key ?? tier;
+
   return (
     <div
       role="dialog"
@@ -280,12 +490,10 @@ function ModalPicker({
         </div>
 
         <div className="p-5 space-y-4">
-          <PriceTierToggle
-            tier={tier}
-            onChange={setTier}
-            precioDiez={price?.diezOMas ?? price?.medico ?? 0}
-            precioMedico={price?.medico ?? 0}
-          />
+          <PriceTierToggle tier={activeTier} onChange={setTier} tiers={tiers} />
+          <p className="text-xs text-slate-500 text-center">
+            Podés cambiar el nivel más tarde en el cotizador.
+          </p>
 
           <button
             type="button"
@@ -293,7 +501,7 @@ function ModalPicker({
             disabled={unit <= 0}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white font-bold rounded-lg transition shadow-sm"
           >
-            Agregar al cotizador
+            Agregar al cotizador · {formatGTQ(unit)} c/u
           </button>
         </div>
       </div>

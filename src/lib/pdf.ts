@@ -1,6 +1,7 @@
 import type { QuoteItem, ClienteInfo, MedicoInfo, SavedQuote } from '../types';
 import { MEDICATION_BY_ID } from '../data/medications';
 import { PRICES } from '../data/prices';
+import { tiersFor, unitPriceForTier } from './pricing';
 import { formatGTQ } from './currency';
 
 const COLORS = {
@@ -10,24 +11,15 @@ const COLORS = {
   darkGray: [60, 70, 90] as [number, number, number],
 };
 
-function unitPrice(medId: string, tier: 'diez' | 'medico'): number {
-  const p = PRICES[medId];
-  if (!p) return 0;
-  if (tier === 'medico') return p.medico;
-  return p.diezOMas ?? p.medico;
-}
-
-function tierLabel(tier: 'diez' | 'medico'): string {
-  return tier === 'medico' ? 'Médico' : '10+';
-}
-
 function sanitizeFilename(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9-_]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60) || 'cliente';
+  return (
+    s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9-_]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'cliente'
+  );
 }
 
 export async function generateQuotePDF(opts: {
@@ -57,7 +49,11 @@ export async function generateQuotePDF(opts: {
   doc.setFontSize(10);
   doc.text('Cotización profesional', marginX, 21);
   doc.setFontSize(9);
-  doc.text('Tel: (+502) 2433-5641   ·   2 av. 11-30 Col. San Francisco II, zona 6 de Mixco, Guatemala', marginX, 25);
+  doc.text(
+    'Tel: (+502) 2433-5641   ·   2 av. 11-30 Col. San Francisco II, zona 6 de Mixco, Guatemala',
+    marginX,
+    25
+  );
 
   cursorY = 36;
 
@@ -73,7 +69,6 @@ export async function generateQuotePDF(opts: {
   doc.text(`Fecha: ${opts.fecha}`, pageWidth - marginX, cursorY, { align: 'right' });
   cursorY += 8;
 
-  // Client block
   doc.setFillColor(...COLORS.gray);
   doc.rect(marginX, cursorY, pageWidth - 2 * marginX, 24, 'F');
   doc.setFont('helvetica', 'bold');
@@ -88,19 +83,24 @@ export async function generateQuotePDF(opts: {
   doc.text(`Tel: ${opts.cliente.telefono || '—'}`, marginX + 80, lineY);
   doc.text(`Dirección: ${opts.cliente.direccion || '—'}`, marginX + 3, lineY + 5);
   doc.text(`Médico: ${opts.medico.nombre || '—'}`, marginX + 3, lineY + 10);
-  doc.text(`Colegiado: ${opts.medico.colegiado || '—'}   ·   Esp: ${opts.medico.especialidad || '—'}`, marginX + 80, lineY + 10);
+  doc.text(
+    `Colegiado: ${opts.medico.colegiado || '—'}   ·   Esp: ${opts.medico.especialidad || '—'}`,
+    marginX + 80,
+    lineY + 10
+  );
   cursorY += 30;
 
-  // Items table
   const rows = opts.items.map((it, idx) => {
     const med = MEDICATION_BY_ID[it.medId];
-    const unit = unitPrice(it.medId, it.tier);
+    const tiers = tiersFor(PRICES[it.medId]);
+    const tier = tiers.find((t) => t.key === it.tier) ?? tiers[0];
+    const unit = unitPriceForTier(PRICES[it.medId], it.tier);
     const subtotal = unit * it.qty;
     return [
       String(idx + 1),
       med ? med.nombreComercial : it.medId,
       med ? med.presentacion : '—',
-      tierLabel(it.tier),
+      tier ? tier.shortLabel : '—',
       String(it.qty),
       formatGTQ(unit),
       formatGTQ(subtotal),
@@ -129,7 +129,6 @@ export async function generateQuotePDF(opts: {
 
   cursorY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 6;
 
-  // Total
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(...COLORS.red);
@@ -139,7 +138,6 @@ export async function generateQuotePDF(opts: {
 
   cursorY += 16;
 
-  // Notas
   if (opts.notas) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
@@ -153,7 +151,6 @@ export async function generateQuotePDF(opts: {
     cursorY += 5 + lines.length * 4 + 4;
   }
 
-  // Terms
   doc.setDrawColor(...COLORS.blue);
   doc.setLineWidth(0.4);
   doc.line(marginX, cursorY, pageWidth - marginX, cursorY);
@@ -175,7 +172,6 @@ export async function generateQuotePDF(opts: {
   doc.text(terms, marginX, cursorY + 5);
   cursorY += 5 + terms.length * 4 + 6;
 
-  // Footer
   doc.setFontSize(8);
   doc.setTextColor(140, 145, 160);
   doc.text(

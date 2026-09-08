@@ -4,6 +4,7 @@ import { History as HistoryIcon, Eye, Copy, Trash2, FileDown, X, ShoppingCart, C
 import { useQuoterStore } from '../store/quoterStore';
 import { MEDICATION_BY_ID } from '../data/medications';
 import { PRICES } from '../data/prices';
+import { unitPriceForTier } from '../lib/pricing';
 import { formatDate, formatGTQ } from '../lib/currency';
 import { generateSavedQuotePDF } from '../lib/pdf';
 import type { SavedQuote } from '../types';
@@ -268,10 +269,16 @@ function DetailModal({ quote, onClose }: { quote: SavedQuote; onClose: () => voi
                       </div>
                       <span
                         className={`inline-block mt-0.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                          it.tier === 'medico' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'
+                          it.tier === 'medico'
+                            ? 'bg-red-50 text-red-700'
+                            : it.tier === 'diezOMas'
+                              ? 'bg-indigo-50 text-indigo-700'
+                              : it.tier === 'tresANueve'
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'bg-amber-50 text-amber-700'
                         }`}
                       >
-                        {it.tier === 'medico' ? 'Médico' : '10+'}
+                        {tierLabelSnapshot(it.tier)}
                       </span>
                     </div>
                   </div>
@@ -322,13 +329,21 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
 }
 
 function unitPriceSnapshot(it: { medId: string; tier: PriceTier }): number {
-  const p = PRICES[it.medId];
-  if (!p) return 0;
-  return it.tier === 'medico' ? p.medico : (p.diezOMas ?? p.medico);
+  return unitPriceForTier(PRICES[it.medId], it.tier);
 }
 
 function subtotalSnapshot(it: { medId: string; tier: PriceTier; qty: number }): number {
   return unitPriceSnapshot(it) * it.qty;
+}
+
+function tierLabelSnapshot(tier: PriceTier): string {
+  const map: Record<PriceTier, string> = {
+    tresANueve: '3 a 9',
+    diezOMas: '10+',
+    medico: 'Médico',
+    volumen: 'Volumen',
+  };
+  return map[tier] ?? '—';
 }
 
 function Toast({ children, color }: { children: React.ReactNode; color: string }) {

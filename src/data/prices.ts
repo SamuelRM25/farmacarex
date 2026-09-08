@@ -56,7 +56,8 @@ export const PRICES: Record<string, PriceTierInfo> = {
   // ===== OTROS FARMACÉUTICOS =====
   'dayfem-hcg-test': { venta: 25.00, farmacia: 15.00, diezOMas: 13.64, medico: 13.64, condicion: 'En la compra de 1000 unidades' },
   'dayfem-hcg-midstream': { venta: 45.00, farmacia: 35.00, diezOMas: 31.81, medico: 31.81, condicion: 'En la compra de 50 unidades' },
-  'delisure-ninos': { venta: 143.00, medico: 105.00 },
+  'delisure-ninos-fresa': { venta: 143.00, medico: 105.00 },
+  'delisure-ninos-vainilla': { venta: 143.00, medico: 105.00 },
   'abencyl-susp': { venta: 140.00, farmacia: 112.00, tresANueve: 74.67, diezOMas: 67.20, medico: 60.19 },
   'abencyl-tab': { venta: 150.00, farmacia: 120.00, tresANueve: 80.00, diezOMas: 72.00, medico: 64.73 },
   'enaprex': { venta: 80.00, farmacia: 64.00, tresANueve: 42.67, diezOMas: 38.40, medico: 34.53 },

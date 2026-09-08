@@ -1,3 +1,5 @@
+export type Marca = 'ascavi' | 'medicbrand' | 'farma-cerex';
+
 export type Categoria =
   | 'gripe-tos'
   | 'gastro'
@@ -10,7 +12,7 @@ export type Categoria =
   | 'cuidado-bebe'
   | 'dispositivo';
 
-export type PriceTier = 'diez' | 'medico';
+export type PriceTier = 'tresANueve' | 'diezOMas' | 'medico' | 'volumen';
 
 export interface Componente {
   componente: string;
@@ -26,17 +28,38 @@ export interface PriceTierInfo {
   condicion?: string;
 }
 
+export interface Comparativa {
+  titulo: string;
+  diferencia: string;
+}
+
 export interface Medication {
   id: string;
   nombreComercial: string;
   nombreGenerico?: string;
+  marca: Marca;
+  principioActivo?: string;
   categoria: Categoria;
   presentacion: string;
   esGenerico?: boolean;
   formula?: Componente[];
   indicaciones?: string;
+  mecanismoAccion?: string;
+  contraindicaciones?: string;
+  efectosSecundarios?: string;
   posologia?: string;
+  posologiaPorPeso?: string[];
   seguridad?: string;
+  comparativa?: Comparativa[];
+}
+
+export interface TierOption {
+  key: PriceTier;
+  label: string;
+  shortLabel: string;
+  price: number;
+  condicion?: string;
+  color: 'blue' | 'indigo' | 'red' | 'amber';
 }
 
 export interface QuoteItem {
@@ -81,3 +104,29 @@ export const CATEGORIAS: Record<Categoria, { label: string; color: string; }> = 
   'cuidado-bebe': { label: 'Cuidado del bebé', color: 'bg-rose-100 text-rose-700' },
   'dispositivo': { label: 'Dispositivos / Otros', color: 'bg-slate-100 text-slate-700' },
 };
+
+export const MARCAS: Record<Marca, { label: string; short: string; color: string; bg: string; ring: string; }> = {
+  ascavi: {
+    label: 'Ascavi',
+    short: 'Ascavi',
+    color: 'text-blue-800',
+    bg: 'bg-blue-50',
+    ring: 'ring-blue-200',
+  },
+  medicbrand: {
+    label: 'MedicBrand',
+    short: 'MedicBrand',
+    color: 'text-red-700',
+    bg: 'bg-red-50',
+    ring: 'ring-red-200',
+  },
+  'farma-cerex': {
+    label: 'FarmaCarex',
+    short: 'FarmaCarex',
+    color: 'text-slate-700',
+    bg: 'bg-slate-100',
+    ring: 'ring-slate-300',
+  },
+};
+
+export const MARCA_ORDER: Marca[] = ['ascavi', 'medicbrand', 'farma-cerex'];
