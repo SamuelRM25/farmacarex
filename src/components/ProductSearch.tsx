@@ -228,7 +228,7 @@ function ResultRow({
           {tresANueve !== undefined && (
             <PriceChip label="3 a 9" value={tresANueve} color="emerald" />
           )}
-          {hasHidden && (
+          {hasHidden ? (
             <button
               type="button"
               onClick={onToggleExpand}
@@ -246,28 +246,12 @@ function ResultRow({
                 </>
               )}
             </button>
-          )}
-        </div>
-      </div>
-
-      <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-          isExpanded ? 'grid-rows-[1fr] mt-4' : 'grid-rows-[0fr]'
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 space-y-3">
-            <PriceTierToggle
-              tier={selectedTier}
-              onChange={onSelectTier}
-              tiers={tiers}
-              hideLabel
-            />
+          ) : (
             <button
               type="button"
               onClick={onAdd}
               disabled={unit <= 0 || justAdded}
-              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 font-bold rounded-lg transition shadow-sm active:scale-[0.98] ${
+              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition active:scale-[0.97] ${
                 justAdded
                   ? 'bg-emerald-600 text-white'
                   : 'bg-red-500 hover:bg-red-600 text-white'
@@ -275,19 +259,60 @@ function ResultRow({
             >
               {justAdded ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Agregado al cotizador
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Agregado
                 </>
               ) : (
                 <>
-                  <Plus className="w-4 h-4" />
-                  Agregar al cotizador · {formatGTQ(unit)} c/u
+                  <Plus className="w-3.5 h-3.5" />
+                  Agregar
                 </>
               )}
             </button>
-          </div>
+          )}
         </div>
       </div>
+
+      {hasHidden && (
+        <div
+          className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+            isExpanded ? 'grid-rows-[1fr] mt-4' : 'grid-rows-[0fr]'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 space-y-3">
+              <PriceTierToggle
+                tier={selectedTier}
+                onChange={onSelectTier}
+                tiers={tiers}
+                hideLabel
+              />
+              <button
+                type="button"
+                onClick={onAdd}
+                disabled={unit <= 0 || justAdded}
+                className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 font-bold rounded-lg transition shadow-sm active:scale-[0.98] ${
+                  justAdded
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-red-500 hover:bg-red-600 text-white'
+                }`}
+              >
+                {justAdded ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Agregado al cotizador
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Agregar al cotizador · {formatGTQ(unit)} c/u
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </li>
   );
 }

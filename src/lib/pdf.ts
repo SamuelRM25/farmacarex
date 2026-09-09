@@ -1,7 +1,7 @@
 import type { QuoteItem, ClienteInfo, MedicoInfo, SavedQuote } from '../types';
 import { MEDICATION_BY_ID } from '../data/medications';
 import { PRICES } from '../data/prices';
-import { tiersFor, unitPriceForTier } from './pricing';
+import { unitPriceForTier } from './pricing';
 import { formatGTQ } from './currency';
 
 const COLORS = {
@@ -92,15 +92,12 @@ export async function generateQuotePDF(opts: {
 
   const rows = opts.items.map((it, idx) => {
     const med = MEDICATION_BY_ID[it.medId];
-    const tiers = tiersFor(PRICES[it.medId]);
-    const tier = tiers.find((t) => t.key === it.tier) ?? tiers[0];
     const unit = unitPriceForTier(PRICES[it.medId], it.tier);
     const subtotal = unit * it.qty;
     return [
       String(idx + 1),
       med ? med.nombreComercial : it.medId,
       med ? med.presentacion : '—',
-      tier ? tier.shortLabel : '—',
       String(it.qty),
       formatGTQ(unit),
       formatGTQ(subtotal),
@@ -109,7 +106,7 @@ export async function generateQuotePDF(opts: {
 
   autoTable(doc, {
     startY: cursorY,
-    head: [['#', 'Producto', 'Presentación', 'Nivel', 'Cant.', 'Precio unit.', 'Subtotal']],
+    head: [['#', 'Producto', 'Presentación', 'Cant.', 'Precio unit.', 'Subtotal']],
     body: rows,
     theme: 'grid',
     headStyles: { fillColor: COLORS.blue, textColor: 255, fontStyle: 'bold' },
@@ -118,11 +115,10 @@ export async function generateQuotePDF(opts: {
     columnStyles: {
       0: { cellWidth: 8, halign: 'center' },
       1: { cellWidth: 'auto' },
-      2: { cellWidth: 36 },
+      2: { cellWidth: 44 },
       3: { cellWidth: 16, halign: 'center' },
-      4: { cellWidth: 14, halign: 'center' },
-      5: { cellWidth: 22, halign: 'right' },
-      6: { cellWidth: 24, halign: 'right' },
+      4: { cellWidth: 28, halign: 'right' },
+      5: { cellWidth: 30, halign: 'right' },
     },
     margin: { left: marginX, right: marginX },
   });

@@ -1,7 +1,7 @@
 import type { QuoteItem, ClienteInfo, MedicoInfo } from '../types';
 import { MEDICATION_BY_ID } from '../data/medications';
 import { PRICES } from '../data/prices';
-import { tiersFor, unitPriceForTier } from './pricing';
+import { unitPriceForTier } from './pricing';
 
 const PHONE_REGEX = /[^0-9+]/g;
 
@@ -38,13 +38,10 @@ export function buildWhatsappText(opts: {
 
   opts.items.forEach((it) => {
     const med = MEDICATION_BY_ID[it.medId];
-    const tiers = tiersFor(PRICES[it.medId]);
-    const tier = tiers.find((t) => t.key === it.tier) ?? tiers[0];
     const unit = unitPriceForTier(PRICES[it.medId], it.tier);
     const subtotal = unit * it.qty;
     const name = med ? med.nombreComercial : it.medId;
-    const tierLabel = tier ? tier.shortLabel : '—';
-    lines.push(`• ${qty(it.qty)} × ${name} (${tierLabel}) — ${money(subtotal)}`);
+    lines.push(`• ${qty(it.qty)} × ${name} — ${money(subtotal)}`);
   });
 
   lines.push('');
