@@ -9,6 +9,7 @@ interface Props {
   marca: Marca;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  onClick?: () => void;
 }
 
 const SIZE_CLASS: Record<NonNullable<Props['size']>, string> = {
@@ -17,7 +18,7 @@ const SIZE_CLASS: Record<NonNullable<Props['size']>, string> = {
   lg: 'w-28 h-28 sm:w-32 sm:h-32',
 };
 
-export default function MedImage({ medId, marca, size = 'md', className = '' }: Props) {
+export default function MedImage({ medId, marca, size = 'md', className = '', onClick }: Props) {
   const src = getMedImage(medId);
   const brand = MARCAS[marca];
   const [loaded, setLoaded] = useState(false);
@@ -25,23 +26,21 @@ export default function MedImage({ medId, marca, size = 'md', className = '' }: 
 
   const showImage = src && !errored;
   const dim = SIZE_CLASS[size];
+  const interactive = Boolean(onClick);
 
-  return (
-    <div
-      className={`relative ${dim} shrink-0 rounded-lg overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center ${className}`}
-      aria-hidden={!showImage}
-    >
+  const inner = (
+    <>
       {!showImage ? (
         <div className={`flex items-center justify-center w-full h-full ${brand.bg}`}>
-          <Pill className={`${size === 'sm' ? 'w-5 h-5' : size === 'md' ? 'w-7 h-7' : 'w-10 h-10'} ${brand.color}`} strokeWidth={1.8} />
+          <Pill
+            className={`${size === 'sm' ? 'w-5 h-5' : size === 'md' ? 'w-7 h-7' : 'w-10 h-10'} ${brand.color}`}
+            strokeWidth={1.8}
+          />
         </div>
       ) : (
         <>
           {!loaded && (
-            <div
-              className={`absolute inset-0 ${brand.bg} animate-pulse`}
-              aria-hidden
-            />
+            <div className={`absolute inset-0 ${brand.bg} animate-pulse`} aria-hidden />
           )}
           <img
             src={src}
@@ -56,6 +55,28 @@ export default function MedImage({ medId, marca, size = 'md', className = '' }: 
           />
         </>
       )}
+    </>
+  );
+
+  if (interactive) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`relative ${dim} shrink-0 rounded-lg overflow-hidden bg-slate-50 border border-slate-100 cursor-zoom-in hover:scale-[1.04] active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${className}`}
+        aria-label={`Ver imagen ampliada de ${medId}`}
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={`relative ${dim} shrink-0 rounded-lg overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center ${className}`}
+      aria-hidden={!showImage}
+    >
+      {inner}
     </div>
   );
 }
