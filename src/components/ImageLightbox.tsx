@@ -42,7 +42,7 @@ export default function ImageLightbox({ src, alt, caption, marca, open, onClose 
   if (!open) return null;
 
   const brand = marca ? MARCAS[marca] : null;
-  const zoomIn = () => setZoom((z) => Math.min(z + 0.25, 3));
+  const zoomIn = () => setZoom((z) => Math.min(z + 0.25, 4));
   const zoomOut = () => setZoom((z) => Math.max(z - 0.25, 1));
   const reset = () => setZoom(1);
 
@@ -51,7 +51,7 @@ export default function ImageLightbox({ src, alt, caption, marca, open, onClose 
       role="dialog"
       aria-modal="true"
       aria-label="Visor de imagen"
-      className="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-8 animate-fade-in"
+      className="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 animate-fade-in"
       onClick={onClose}
     >
       <button
@@ -60,27 +60,33 @@ export default function ImageLightbox({ src, alt, caption, marca, open, onClose 
           e.stopPropagation();
           onClose();
         }}
-        className="absolute top-3 right-3 sm:top-5 sm:right-5 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition active:scale-[0.92]"
+        className="absolute top-3 right-3 sm:top-5 sm:right-5 z-10 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition active:scale-[0.92]"
         aria-label="Cerrar"
       >
         <X className="w-5 h-5" />
       </button>
 
+      {/* Contenedor casi fullscreen. Forzamos min-w/min-h grandes para que
+          imágenes pequeñas (ej. Alphavit 25,000) se escalen al viewport en
+          lugar de quedar en su tamaño natural. */}
       <div
-        className="relative flex items-center justify-center w-full max-w-[92vw] h-[80vh] overflow-hidden"
+        className="relative flex items-center justify-center w-full h-[78vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={src}
           alt={alt}
-          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-out select-none"
+          // min-w/min-h + max-w/max-h con object-contain = la imagen ocupa
+          // todo el viewport (escalando si es chica) sin distorsionarse.
+          // El transform: scale() del usuario se acumula sobre este tamaño base.
+          className="min-w-[85vw] min-h-[65vh] max-w-[96vw] max-h-[78vh] w-auto h-auto object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-out select-none"
           style={{ transform: `scale(${zoom})` }}
           draggable={false}
         />
       </div>
 
       <div
-        className="mt-3 sm:mt-5 flex items-center gap-2 sm:gap-3"
+        className="mt-3 sm:mt-4 flex items-center gap-2 sm:gap-3"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full p-1">
@@ -99,7 +105,7 @@ export default function ImageLightbox({ src, alt, caption, marca, open, onClose 
           <button
             type="button"
             onClick={zoomIn}
-            disabled={zoom >= 3}
+            disabled={zoom >= 4}
             className="p-2 rounded-full text-white hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-transparent transition"
             aria-label="Aumentar zoom"
           >
@@ -119,7 +125,7 @@ export default function ImageLightbox({ src, alt, caption, marca, open, onClose 
 
       {(caption || brand) && (
         <div
-          className="mt-3 sm:mt-4 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white text-sm flex items-center gap-2"
+          className="mt-2 sm:mt-3 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white text-sm flex items-center gap-2"
           onClick={(e) => e.stopPropagation()}
         >
           {brand && (
