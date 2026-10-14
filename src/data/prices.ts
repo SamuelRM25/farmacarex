@@ -31,6 +31,7 @@ export const PRICES: Record<string, PriceTierInfo> = {
   'febrikids-gotas': { venta: 48.87, farmacia: 39.10, tresANueve: 26.06, diezOMas: 23.46, medico: 21.55 },
   'diclovert': { venta: 90.00, farmacia: 72.00, tresANueve: 48.00, diezOMas: 43.20, medico: 40.13 },
   'celtere': { venta: 105.00, farmacia: 84.00, tresANueve: 56.00, diezOMas: 50.40, medico: 46.30 },
+  'celtere-500-tab': { venta: 87.89, farmacia: 65.00, tresANueve: 60.00, diezOMas: 55.00, medico: 50.00 },
 
   // ===== ANTIHISTAMÍNICOS =====
   'nocicep-tab': { venta: 54.63, farmacia: 43.70, tresANueve: 29.14, diezOMas: 26.22, medico: 23.85 },
@@ -65,6 +66,8 @@ export const PRICES: Record<string, PriceTierInfo> = {
   'emox-susp': { venta: 175.00, farmacia: 140.00, tresANueve: 93.33, diezOMas: 84.00, medico: 77.29 },
   'virest': { venta: 100.00, farmacia: 80.00, tresANueve: 53.33, diezOMas: 48.00, medico: 43.41 },
   'emox-tab': { venta: 300.00, farmacia: 240.00, tresANueve: 160.00, diezOMas: 144.00, medico: 132.96 },
+  'glemenex-msm': { venta: 658.81, farmacia: 330.00, tresANueve: 320.00, diezOMas: 310.00, medico: 295.00 },
+  'penfluz': { venta: 95.58, farmacia: 65.00, tresANueve: 60.00, diezOMas: 55.00, medico: 50.00 },
 
   // ===== CUIDADO DEL BEBÉ =====
   'aspirador-nasal': { venta: 22.00, medico: 12.20 },

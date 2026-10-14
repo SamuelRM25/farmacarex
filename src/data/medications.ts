@@ -648,7 +648,81 @@ export const MEDICATIONS: Medication[] = [
     posologia:
       '25–45 mg/kg/día (basado en amoxicilina), dividido en 2 tomas cada 12 h. Infecciones severas: hasta 80–90 mg/kg/día.',
     seguridad:
-      'Frasco de 70 mL, sabor goma de mascar, certificación EMA.',
+      'Contraindicado en alergia a penicilinas o cefalosporinas. Efecto adverso más común: diarrea (administrar al inicio de una comida). Tras reconstitución, refrigerar y descartar a los 7–10 días.',
+  },
+
+  // ========================================================
+  // PRODUCTOS NUEVOS — MedicBrand (oct 2026)
+  // ========================================================
+  {
+    id: 'celtere-500-tab',
+    nombreComercial: 'Celtere 500 mg',
+    nombreGenerico: 'Azitromicina (tableta recubierta)',
+    marca: 'medicbrand',
+    principioActivo: 'Azitromicina',
+    categoria: 'antibiotico',
+    presentacion: 'Caja 3 tabletas recubiertas',
+    formula: [{ componente: 'Azitromicina', cantidad: '500 mg / Tab' }],
+    mecanismoAccion:
+      'Antibiótico macrólido bacteriostático. Se une a la subunidad ribosomal 50S inhibiendo la síntesis de proteínas bacterianas.',
+    indicaciones:
+      'Infecciones respiratorias (neumonía, bronquitis, sinusitis, amigdalitis, otitis), ITS (clamidia, gonorrea) e infecciones de piel y tejidos blandos.',
+    contraindicaciones:
+      'Hipersensibilidad a macrólidos. Insuficiencia hepática grave.',
+    efectosSecundarios:
+      'Diarrea, heces blandas, náuseas, vómitos, cólicos abdominales, gases y dolor de cabeza.',
+    posologia:
+      'Adultos: 500 mg (1 tableta) una vez al día por 3 días consecutivos, o según criterio médico.',
+    seguridad:
+      'Tomar con o sin alimentos. Misma familia que el Celtere 200 mg/5 mL suspensión (azitromicina).',
+  },
+  {
+    id: 'glemenex-msm',
+    nombreComercial: 'Glemenex MSM',
+    nombreGenerico: 'Glucosamina + Condroitina + MSM',
+    marca: 'medicbrand',
+    principioActivo: 'Glucosamina + Condroitina + Metilsulfonilmetano (MSM)',
+    categoria: 'vitaminas',
+    presentacion: 'Caja 30 sobres (solución oral, sabor naranja)',
+    formula: [
+      { componente: 'Glucosamina', cantidad: '1500 mg / sobre' },
+      { componente: 'Condroitina', cantidad: '1000 mg / sobre' },
+      { componente: 'Metilsulfonilmetano (MSM)', cantidad: '1000 mg / sobre' },
+    ],
+    mecanismoAccion:
+      'Suplemento dietético para apoyo articular. Glucosamina participa en la formación y reparación del cartílago y tejido conectivo. Condroitina mantiene la elasticidad y amortiguación de la articulación. MSM es una fuente orgánica de azufre con propiedades antiinflamatorias que reduce el dolor y favorece la recuperación de los tejidos.',
+    indicaciones:
+      'Apoyo en osteoartritis (rodilla, cadera, manos) y otras articulaciones sinoviales. Reducción del dolor, mejoría de la movilidad y alivio de la rigidez articular.',
+    contraindicaciones:
+      'Alergia a mariscos (la glucosamina suele extraerse de conchas). Interacción con anticoagulantes orales como warfarina.',
+    efectosSecundarios:
+      'Molestias digestivas leves (náuseas, acidez, diarrea).',
+    posologia:
+      '1 sobre al día, disuelto en agua, con o después de las comidas. Los efectos suelen tardar entre 2 y 3 meses de uso continuo en notarse.',
+    seguridad:
+      'Agradable sabor a naranja. No reemplaza un tratamiento médico formal. Diferenciador: contiene 1000 mg de MSM por sobre, mayor concentración antiinflamatoria y analgésica que alternativas del mercado (ej. Lubeck con 250 mg).',
+  },
+  {
+    id: 'penfluz',
+    nombreComercial: 'Penfluz',
+    nombreGenerico: 'Extracto de Hedera helix 35 mg / 5 mL',
+    marca: 'medicbrand',
+    principioActivo: 'Extracto de Hedera helix',
+    categoria: 'gripe-tos',
+    presentacion: 'Frasco 120 mL (jarabe)',
+    formula: [{ componente: 'Extracto de Hedera helix', cantidad: '35 mg / 5 mL' }],
+    mecanismoAccion:
+      'Expectorante y mucolítico natural elaborado a partir del extracto de hojas de hiedra. Fluidifica el moco acumulado en las vías respiratorias facilitando su expulsión, con efecto broncodilatador leve que relaja la musculatura bronquial. Al reducir la inflamación de la mucosa disminuye el reflejo de la tos.',
+    indicaciones:
+      'Tos y afecciones bronquiales. Como mucolítico y expectorante en cuadros agudos de bronquitis o irritación bronquial.',
+    contraindicaciones:
+      'No debe administrarse en niños menores de 2 años (por seguridad respiratoria), a menos que el médico lo indique.',
+    efectosSecundarios:
+      'En algunos casos puede provocar molestias gastrointestinales leves (náuseas, vómitos o diarrea).',
+    posologia:
+      'Niños mayores de 2 años: 2.5 mL 3 veces por día. Niños en edad escolar y adolescentes: 5 mL 3 veces por día. Adultos: 5–7.5 mL 3 veces por día.',
+    seguridad:
+      'Contiene sorbitol (importante para personas con intolerancia a la fructosa).',
   },
   {
     id: 'virest',

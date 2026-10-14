@@ -50,8 +50,11 @@ const MEDICATION_IMAGES_RAW: Record<string, string> = {
   lemudor: '/medicamentos/lemudor.png',
   diclovert: '/medicamentos/diclovert.png',
   celtere: '/medicamentos/celtere.png',
+  celtere_500_tab: '/medicamentos/celteretabletas.jpg',
   enaprex: '/medicamentos/enaprex.png',
   virest: '/medicamentos/virest.png',
+  glemenex_msm: '/medicamentos/gleminexmsm.jpg',
+  penfluz: '/medicamentos/penfluz.jpg',
   delisure_ninos_fresa: '/medicamentos/delisure.png',
   delisure_ninos_vainilla: '/medicamentos/delisure.png',
 };

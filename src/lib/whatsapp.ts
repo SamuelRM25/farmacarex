@@ -14,12 +14,14 @@ export function computeTotal(items: QuoteItem[]): number {
   return items.reduce((acc, it) => acc + unitPriceForTier(PRICES[it.medId], it.tier) * it.qty, 0);
 }
 
-function qty(n: number): string {
-  return `${n}`;
-}
-
 function money(value: number): string {
   return `Q ${value.toFixed(2)}`;
+}
+
+function escapeAsterisks(s: string): string {
+  // WhatsApp usa *asterisco* para bold. Si un nombre de producto tiene
+  // asteriscos, los escapamos con zero-width-joiner para que no rompa el formato.
+  return s.replace(/\*/g, '\u200d*');
 }
 
 export function buildWhatsappText(opts: {
@@ -31,24 +33,28 @@ export function buildWhatsappText(opts: {
 }): string {
   const lines: string[] = [];
   lines.push('Hola,');
-  if (opts.medico.nombre) lines.push(`Dr./Dra. ${opts.medico.nombre},`);
+  if (opts.medico.nombre) lines.push(`Dr./Dra. ${escapeAsterisks(opts.medico.nombre)},`);
   lines.push('');
   lines.push('Adjunto la cotización de FarmaCarex:');
   lines.push('');
 
+  // Cada item: nombre + presentacion en una línea, debajo cantidad ×
+  // unitario y subtotal. Total general separado con línea de puntos.
   opts.items.forEach((it) => {
     const med = MEDICATION_BY_ID[it.medId];
     const unit = unitPriceForTier(PRICES[it.medId], it.tier);
     const subtotal = unit * it.qty;
-    const name = med ? med.nombreComercial : it.medId;
-    lines.push(`• ${qty(it.qty)} × ${name} — ${money(subtotal)}`);
+    const name = med ? escapeAsterisks(med.nombreComercial) : it.medId;
+    const presentacion = med ? escapeAsterisks(med.presentacion) : '';
+    lines.push(`• *${name}*${presentacion ? ` _(${presentacion})_` : ''}`);
+    lines.push(`   ${it.qty} × ${money(unit)} c/u · = ${money(subtotal)}`);
   });
 
   lines.push('');
-  lines.push(`*Total: ${money(opts.total)}*`);
+  lines.push(`• *TOTAL: ${money(opts.total)}*`);
   lines.push('');
+  if (opts.cliente.nombre) lines.push(`Cliente: ${escapeAsterisks(opts.cliente.nombre)}`);
   lines.push(`Fecha: ${opts.fecha}`);
-  if (opts.cliente.nombre) lines.push(`Cliente: ${opts.cliente.nombre}`);
   lines.push('Válida por 15 días calendario. Sujeto a disponibilidad.');
   lines.push('');
   lines.push('Quedo atento a su confirmación. ¡Gracias!');
