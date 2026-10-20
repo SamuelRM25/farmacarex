@@ -686,7 +686,7 @@ export const MEDICATIONS: Medication[] = [
     presentacion: 'Caja 30 sobres (solución oral, sabor naranja)',
     formula: [
       { componente: 'Glucosamina', cantidad: '1500 mg / sobre' },
-      { componente: 'Condroitina', cantidad: '1000 mg / sobre' },
+      { componente: 'Condroitina', cantidad: '1200 mg / sobre' },
       { componente: 'Metilsulfonilmetano (MSM)', cantidad: '1000 mg / sobre' },
     ],
     mecanismoAccion:
