@@ -18,7 +18,6 @@ const CATEGORIA_ORDER: Categoria[] = [
   'antiparasitario',
   'vitaminas',
   'cuidado-bebe',
-  'dispositivo',
 ];
 
 const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
@@ -83,7 +82,6 @@ export default function Vademecum() {
     const map: Record<Marca, Medication[]> = {
       ascavi: [],
       medicbrand: [],
-      'farma-cerex': [],
     };
     for (const m of filtered) map[m.marca].push(m);
     return map;
@@ -100,7 +98,7 @@ export default function Vademecum() {
             Vademécum
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            {MEDICATIONS.length} productos · {brandCounts['ascavi'] ?? 0} Ascavi · {brandCounts['medicbrand'] ?? 0} MedicBrand · {brandCounts['farma-cerex'] ?? 0} FarmaCarex
+            {MEDICATIONS.length} productos · {brandCounts['ascavi'] ?? 0} Ascavi · {brandCounts['medicbrand'] ?? 0} MedicBrand
           </p>
         </div>
 
@@ -201,7 +199,7 @@ export default function Vademecum() {
         </div>
       ) : grouped ? (
         <div className="space-y-8">
-          {(['ascavi', 'medicbrand', 'farma-cerex'] as Marca[]).map((m) => {
+          {(['ascavi', 'medicbrand'] as Marca[]).map((m) => {
             const items = grouped[m];
             if (items.length === 0) return null;
             const meta = MARCAS[m];

@@ -1,7 +1,7 @@
 // Mapeo medId -> ruta de la imagen de referencia.
 // Las imágenes viven en /public/medicamentos/ y se sirven en /medicamentos/...
-// Total: 42 imágenes (2.5 MB). El resto de medicamentos (~25) muestran un
-// placeholder con icono Pill del brand.
+// Catálogo: 48 productos (34 Ascavi + 14 MedicBrand), 42 archivos de imagen
+// (DeliSure usa la misma para fresa y vainilla).
 const MEDICATION_IMAGES_RAW: Record<string, string> = {
   // Tusicarex (Ascavi)
   tusicarex: '/medicamentos/tusicarex.png',
@@ -64,8 +64,64 @@ function normalizeId(medId: string): string {
   return medId.replace(/-/g, '_');
 }
 
+export interface MedImageInfo {
+  /** Ruta de la imagen. */
+  src: string;
+  /** true si la imagen tiene fondo recortado (canal alfa) y flota sobre el color. */
+  transparent: boolean;
+}
+
+const ALPHA: Record<string, true> = {
+  alphavit: true,
+  alphavit_25000: true,
+  alphavit_dn: true,
+  biomicotrin: true,
+  blockdol: true,
+  dexa_neurotropas: true,
+  dolo_neurotropas: true,
+  evamedyx_ampolla: true,
+  evamedyx_susp: true,
+  febrikids_gotas: true,
+  febrikids_jarabe: true,
+  fosfomenal_ampolla: true,
+  gastricarex: true,
+  gelexil: true,
+  gesik_dol_gotas: true,
+  gesik_dol_susp: true,
+  gesikdol_forte: true,
+  gesikdol_plus: true,
+  ginkgo_ginseng_ampolla: true,
+  klavicarex: true,
+  mofoxtin: true,
+  neurotropas_25000: true,
+  nocicep_rp_sol: true,
+  nocicep_rp_tab: true,
+  nocicep_tab: true,
+  tabypress_h: true,
+  triplex_derm: true,
+  tusicarex: true,
+  tusicarex_antigripal: true,
+  tusicarex_antigripal_im: true,
+  tusicarex_antitusivo: true,
+  tusicarex_flem: true,
+  vendaxol: true,
+};
+
+export function getMedImageInfo(medId: string): MedImageInfo | undefined {
+  const key = normalizeId(medId);
+  const base = MEDICATION_IMAGES_RAW[key];
+  if (!base) return undefined;
+  if (ALPHA[key]) {
+    return {
+      src: base.replace('/medicamentos/', '/medicamentos/alpha/').replace(/\.[^.]+$/, '.png'),
+      transparent: true,
+    };
+  }
+  return { src: base, transparent: false };
+}
+
 export function getMedImage(medId: string): string | undefined {
-  return MEDICATION_IMAGES_RAW[normalizeId(medId)];
+  return getMedImageInfo(medId)?.src;
 }
 
 export const MEDICATION_IMAGES_COUNT = Object.keys(MEDICATION_IMAGES_RAW).length;

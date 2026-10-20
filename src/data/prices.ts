@@ -55,8 +55,6 @@ export const PRICES: Record<string, PriceTierInfo> = {
   'glutamax': { venta: 91.17, farmacia: 72.94, tresANueve: 48.62, diezOMas: 43.76, medico: 38.47 },
 
   // ===== OTROS FARMACÉUTICOS =====
-  'dayfem-hcg-test': { venta: 25.00, farmacia: 15.00, diezOMas: 13.64, medico: 13.64, condicion: 'En la compra de 1000 unidades' },
-  'dayfem-hcg-midstream': { venta: 45.00, farmacia: 35.00, diezOMas: 31.81, medico: 31.81, condicion: 'En la compra de 50 unidades' },
   'delisure-ninos-fresa': { venta: 143.00, medico: 105.00 },
   'delisure-ninos-vainilla': { venta: 143.00, medico: 105.00 },
   'abencyl-susp': { venta: 140.00, farmacia: 112.00, tresANueve: 74.67, diezOMas: 67.20, medico: 60.19 },
@@ -69,29 +67,8 @@ export const PRICES: Record<string, PriceTierInfo> = {
   'glemenex-msm': { venta: 658.81, farmacia: 330.00, tresANueve: 320.00, diezOMas: 310.00, medico: 295.00 },
   'penfluz': { venta: 95.58, farmacia: 65.00, tresANueve: 60.00, diezOMas: 55.00, medico: 50.00 },
 
-  // ===== CUIDADO DEL BEBÉ =====
-  'aspirador-nasal': { venta: 22.00, medico: 12.20 },
-  'biberon-60': { venta: 19.92, medico: 12.45 },
-  'biberon-150': { venta: 24.06, medico: 19.25 },
-  'biberon-300': { venta: 30.31, medico: 24.25 },
-  'mamon-grande': { venta: 10.00, medico: 6.43 },
-  'cepillo-lava-biberon': { venta: 30.00, medico: 14.23 },
-  'set-corta-unas': { venta: 25.00, medico: 15.97 },
-  'extractor-leche': { venta: 28.00, medico: 15.50 },
-  'cepillo-bebe': { venta: 15.00, medico: 6.23 },
-  'vajilla-bambu': { venta: 79.50, medico: 65.00 },
-  'pijama-chiquititos': { venta: 70.00, medico: 20.00 },
 
   // ===== DISPOSITIVOS Y OTROS =====
-  'preservativo-seguro-carex': { venta: 62.50, medico: 50.00 },
-  'frasco-muestra-cp': { venta: 1.58, medico: 1.28 },
-  'frasco-muestra-sp': { venta: 1.52, medico: 1.22 },
-  'corta-unas-farmacarex': { venta: 48.75, medico: 39.24 },
-  'medidor-presion-muneca': { venta: 225.00, medico: 165.00 },
-  'medidor-presion-antebrazo': { venta: 175.00, medico: 130.00 },
-  'termometro-infrarrojo': { venta: 125.00, medico: 90.00 },
-  'termometro-digital': { venta: 30.00, medico: 20.00 },
-  'termometro-animalitos': { venta: 30.00, medico: 20.00 },
 };
 
 export function getPrice(medId: string, tier: 'venta' | 'farmacia' | 'tresANueve' | 'diezOMas' | 'medico'): number | undefined {

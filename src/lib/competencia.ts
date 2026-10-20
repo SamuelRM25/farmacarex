@@ -95,8 +95,6 @@ function categoryContext(cat: Categoria | undefined): string {
       return 'antiparasitario';
     case 'cuidado-bebe':
       return 'pediatría';
-    case 'dispositivo':
-      return 'producto';
     default:
       return 'medicamento';
   }

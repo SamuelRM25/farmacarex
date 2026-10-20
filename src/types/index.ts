@@ -1,4 +1,4 @@
-export type Marca = 'ascavi' | 'medicbrand' | 'farma-cerex';
+export type Marca = 'ascavi' | 'medicbrand';
 
 export type Categoria =
   | 'gripe-tos'
@@ -9,8 +9,7 @@ export type Categoria =
   | 'ginecologia'
   | 'vitaminas'
   | 'antiparasitario'
-  | 'cuidado-bebe'
-  | 'dispositivo';
+  | 'cuidado-bebe';
 
 export type PriceTier = 'tresANueve' | 'diezOMas' | 'medico' | 'volumen';
 
@@ -102,7 +101,6 @@ export const CATEGORIAS: Record<Categoria, { label: string; color: string; }> = 
   'vitaminas': { label: 'Vitaminas / Suplementos', color: 'bg-orange-100 text-orange-700' },
   'antiparasitario': { label: 'Antiparasitario', color: 'bg-emerald-100 text-emerald-700' },
   'cuidado-bebe': { label: 'Cuidado del bebé', color: 'bg-rose-100 text-rose-700' },
-  'dispositivo': { label: 'Dispositivos / Otros', color: 'bg-slate-100 text-slate-700' },
 };
 
 export const MARCAS: Record<Marca, { label: string; short: string; color: string; bg: string; ring: string; }> = {
@@ -120,13 +118,6 @@ export const MARCAS: Record<Marca, { label: string; short: string; color: string
     bg: 'bg-red-50',
     ring: 'ring-red-200',
   },
-  'farma-cerex': {
-    label: 'FarmaCarex',
-    short: 'FarmaCarex',
-    color: 'text-slate-700',
-    bg: 'bg-slate-100',
-    ring: 'ring-slate-300',
-  },
 };
 
-export const MARCA_ORDER: Marca[] = ['ascavi', 'medicbrand', 'farma-cerex'];
+export const MARCA_ORDER: Marca[] = ['ascavi', 'medicbrand'];
